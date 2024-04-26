@@ -1,11 +1,6 @@
 package fr.radi3nt.physics.collision.detection.narrow.sat.micancellious;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
-import fr.radi3nt.maths.sat.projection.NewSatProjectionManager;
-import fr.radi3nt.maths.sat.projection.OverlapInfo;
-import fr.radi3nt.maths.sat.projection.SatProjection;
-import fr.radi3nt.maths.sat.projection.SatProjectionProvider;
-import fr.radi3nt.physics.collision.contact.ContactPair;
 import fr.radi3nt.physics.collision.shape.sat.SatProjectedObject;
 import fr.radi3nt.physics.collision.shape.sat.shape.SatShapeObject;
 import fr.radi3nt.physics.core.TransformedObject;
@@ -17,17 +12,17 @@ import static java.lang.Math.abs;
 public class RaySatCollisionDetector {
 
     private static final SatResult NO_COLLISION = new SatResult(false, null, 0);
-    private static final float EPSILON = 1e-3f;
+    private static final float EPSILON = 1e-4f;
 
     private Vector3f mta = null;
     private float collisionTEnter = 0;
-    private float collisionTLeave = Float.MAX_VALUE;
+    private float collisionTLeave = Float.POSITIVE_INFINITY;
     private int normal;
 
     public SatResult testCollision(SatShapeObject shape1, TransformedObject transformedObject, Vector3f world, Vector3f ray) {
         mta = null;
         collisionTEnter = 0;
-        collisionTLeave = Float.MAX_VALUE;
+        collisionTLeave = Float.POSITIVE_INFINITY;
         normal = 1;
 
         Vector3f[] vertices = getTransformedArray(shape1.getVertices(), transformedObject);
@@ -36,6 +31,7 @@ public class RaySatCollisionDetector {
         processCollision(axis, vertices, world, ray);
         if (this.collisionTEnter > this.collisionTLeave || this.collisionTLeave<0)
             return NO_COLLISION;
+
         if (processCollisionEdges(transformedObject, shape1, vertices, world, ray))
             return NO_COLLISION;
         if (this.collisionTEnter > this.collisionTLeave || this.collisionTLeave<0)
@@ -52,9 +48,6 @@ public class RaySatCollisionDetector {
             transformedObject.getRotation().transform(edge1);
 
             Vector3f satAxis = ray.duplicate().cross(edge1);
-            if (satAxis.lengthSquared() < EPSILON || Double.isNaN(satAxis.lengthSquared()))
-                continue;
-
             satAxis.normalize();
 
             if (computeAxis(satAxis, vertices, world, ray))
@@ -84,7 +77,7 @@ public class RaySatCollisionDetector {
     }
 
     private boolean computeAxis(Vector3f axis, Vector3f[] vertices, Vector3f world, Vector3f ray) {
-        if (axis.lengthSquared() == 0 || Double.isNaN(axis.lengthSquared()))
+        if (axis.lengthSquared() <=EPSILON || Float.isNaN(axis.lengthSquared()))
             return false;
 
 
@@ -94,10 +87,10 @@ public class RaySatCollisionDetector {
         SatProjectedObject p1 = SatProjectedObject.project(vertices, axis);
         SatProjectedObject p2 = new SatProjectedObject(point, point);
 
-        if (speed == 0) {
+        if (abs(speed) < EPSILON) {
             if (SatProjectedObject.getOverlap(p1, p2)==0) {
-                collisionTEnter = Float.MAX_VALUE;
-                collisionTLeave = -Float.MAX_VALUE;
+                collisionTEnter = Float.POSITIVE_INFINITY;
+                collisionTLeave = Float.NEGATIVE_INFINITY;
                 return true;
             }
             if (mta == null) {
