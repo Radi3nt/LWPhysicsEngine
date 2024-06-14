@@ -1,7 +1,6 @@
 package fr.radi3nt.physics.constraints.constraint.caching.provider;
 
 import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule;
-import fr.radi3nt.physics.constraints.constraint.caching.EmptyCachingConstraintModule;
 
 public class ArrayCachingModuleProvider implements CachingModuleProvider {
 

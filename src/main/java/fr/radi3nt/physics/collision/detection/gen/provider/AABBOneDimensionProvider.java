@@ -4,7 +4,6 @@ import fr.radi3nt.maths.aabb.AxisMapping;
 import fr.radi3nt.physics.collision.CollisionShapeGroup;
 import fr.radi3nt.physics.collision.detection.broad.aabb.CachingAABB;
 import fr.radi3nt.physics.core.TransformedObject;
-import fr.radi3nt.physics.core.state.RigidBody;
 
 public class AABBOneDimensionProvider implements OneDimensionProvider {
 

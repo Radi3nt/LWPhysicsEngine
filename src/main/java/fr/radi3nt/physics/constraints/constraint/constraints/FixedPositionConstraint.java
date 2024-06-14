@@ -9,7 +9,6 @@ import fr.radi3nt.physics.constraints.constraint.Constraint;
 import fr.radi3nt.physics.constraints.constraint.ConstraintData;
 import fr.radi3nt.physics.constraints.constraint.DriftParameters;
 import fr.radi3nt.physics.constraints.constraint.StateConstraint;
-import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule;
 import fr.radi3nt.physics.constraints.constraint.caching.provider.CachingModuleProvider;
 import fr.radi3nt.physics.constraints.constraint.index.IdentifiedDynamicsData;
 import fr.radi3nt.physics.constraints.constraint.index.RigidBodyIndex;

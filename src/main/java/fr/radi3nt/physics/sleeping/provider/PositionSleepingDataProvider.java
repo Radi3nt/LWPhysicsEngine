@@ -1,6 +1,5 @@
 package fr.radi3nt.physics.sleeping.provider;
 
-import fr.radi3nt.physics.sleeping.MomentumSleepingData;
 import fr.radi3nt.physics.sleeping.PositionSleepingData;
 import fr.radi3nt.physics.sleeping.SleepingData;
 

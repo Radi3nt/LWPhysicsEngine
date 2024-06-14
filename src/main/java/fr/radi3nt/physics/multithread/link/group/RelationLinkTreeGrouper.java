@@ -6,6 +6,6 @@ import java.util.Collection;
 
 public interface RelationLinkTreeGrouper {
 
-
     Collection<RigidBodyGroup> find(RigidBody[] bodies);
+
 }

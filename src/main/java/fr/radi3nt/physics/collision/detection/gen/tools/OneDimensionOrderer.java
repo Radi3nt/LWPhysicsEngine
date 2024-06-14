@@ -20,8 +20,8 @@ public class OneDimensionOrderer {
     public void sort(Collection<RigidBody> rigidBodies) {
         for (RigidBody rigidBody : rigidBodies) {
             AxisMapping axisMapping = oneDimensionProvider.map(rigidBody, rigidBody.getCollisionData());
-            sortedOneDimensionBodies.add(new OneDimensionBody(rigidBody, (float) axisMapping.getMax(), true));
-            sortedOneDimensionBodies.add(new OneDimensionBody(rigidBody, (float) axisMapping.getMin(), false));
+            sortedOneDimensionBodies.add(new OneDimensionBody(rigidBody, axisMapping.getMax(), true));
+            sortedOneDimensionBodies.add(new OneDimensionBody(rigidBody, axisMapping.getMin(), false));
         }
 
         sortedOneDimensionBodies.sort((o1, o2) -> {

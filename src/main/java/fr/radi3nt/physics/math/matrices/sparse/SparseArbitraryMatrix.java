@@ -2,14 +2,10 @@ package fr.radi3nt.physics.math.matrices.sparse;
 
 import fr.radi3nt.maths.components.arbitrary.VectorNf;
 import fr.radi3nt.maths.components.arbitrary.vector.ArrayVectorNf;
-import fr.radi3nt.maths.components.vectors.Vector2i;
-import fr.radi3nt.maths.components.vectors.implementations.SimpleVector2i;
 import fr.radi3nt.physics.math.ArbitraryMatrix;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 public class SparseArbitraryMatrix implements ArbitraryMatrix {
 

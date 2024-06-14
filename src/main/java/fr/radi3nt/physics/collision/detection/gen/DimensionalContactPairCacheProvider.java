@@ -3,10 +3,10 @@ package fr.radi3nt.physics.collision.detection.gen;
 import fr.radi3nt.physics.collision.contact.cache.ContactPairCache;
 import fr.radi3nt.physics.collision.contact.cache.ContactPairCacheProvider;
 import fr.radi3nt.physics.collision.contact.cache.ListContactPairCache;
+import fr.radi3nt.physics.collision.detection.gen.generator.PairGenerator;
 import fr.radi3nt.physics.collision.detection.gen.provider.OneDimensionProvider;
 import fr.radi3nt.physics.collision.detection.gen.tools.OneDimensionOrderer;
 import fr.radi3nt.physics.collision.detection.gen.tools.OneDimensionPairMeeter;
-import fr.radi3nt.physics.collision.detection.gen.generator.PairGenerator;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 

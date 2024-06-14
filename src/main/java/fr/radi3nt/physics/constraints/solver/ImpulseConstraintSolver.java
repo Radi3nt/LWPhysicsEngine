@@ -13,7 +13,6 @@ import fr.radi3nt.physics.constraints.solver.mass.InverseMassMatrixComputer;
 import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 import fr.radi3nt.physics.math.ArbitraryMatrix;
-import fr.radi3nt.physics.math.matrices.array.BitFlatArrayArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.sparse.SparseArbitraryMatrix;
 import fr.radi3nt.physics.math.multiplication.algorithm.SparseMatrixMultiplicationAlgorithm;
 import fr.radi3nt.physics.math.multiplication.algorithm.SparseSparseMatrixMultiplicationAlgorithm;

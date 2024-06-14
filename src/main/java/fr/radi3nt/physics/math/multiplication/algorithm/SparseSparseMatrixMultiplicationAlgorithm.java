@@ -1,7 +1,5 @@
 package fr.radi3nt.physics.math.multiplication.algorithm;
 
-import fr.radi3nt.maths.Maths;
-import fr.radi3nt.physics.math.ArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.array.BitFlatArrayArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.array.FlatArrayArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.sparse.SparseArbitraryMatrix;

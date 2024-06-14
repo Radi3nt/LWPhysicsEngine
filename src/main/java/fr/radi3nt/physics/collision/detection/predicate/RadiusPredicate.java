@@ -1,7 +1,5 @@
 package fr.radi3nt.physics.collision.detection.predicate;
 
-import fr.radi3nt.maths.aabb.AABB;
-import fr.radi3nt.maths.aabb.AxisMapping;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.core.state.RigidBody;
 

@@ -3,7 +3,6 @@ package fr.radi3nt.physics.multithread.splitter;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.island.ListRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
-import fr.radi3nt.physics.multithread.link.group.BodyRelationLinkTreeGrouper;
 import fr.radi3nt.physics.multithread.link.group.RelationLinkTreeGrouper;
 import fr.radi3nt.physics.multithread.link.group.RigidBodyGroup;
 

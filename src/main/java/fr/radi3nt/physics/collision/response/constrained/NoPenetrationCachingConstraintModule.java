@@ -13,8 +13,7 @@ public class NoPenetrationCachingConstraintModule implements CachingConstraintMo
 
     @Override
     public float getCachedValue() {
-        float cachedLambda = manifoldPoint.cachedContactLambda;
-        return cachedLambda;
+        return manifoldPoint.cachedContactLambda;
     }
 
     @Override

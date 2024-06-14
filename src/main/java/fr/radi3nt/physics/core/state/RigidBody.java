@@ -3,12 +3,8 @@ package fr.radi3nt.physics.core.state;
 import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.collision.CollisionData;
-import fr.radi3nt.physics.collision.shape.CollisionShape;
-import fr.radi3nt.physics.collision.shape.pre.PreCollisionShape;
 import fr.radi3nt.physics.core.TransformedObject;
 import fr.radi3nt.physics.sleeping.SleepingData;
-
-import java.util.Optional;
 
 public class RigidBody implements TransformedObject {
 

@@ -1,18 +1,12 @@
 package fr.radi3nt.physics.dynamics.ode.rk4;
 
-import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
-import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.physics.core.state.DynamicsData;
-import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
-import fr.radi3nt.physics.dynamics.force.caster.ForceCaster;
 import fr.radi3nt.physics.dynamics.force.accumulator.VectorForceAccumulator;
+import fr.radi3nt.physics.dynamics.force.caster.ForceCaster;
 import fr.radi3nt.physics.dynamics.island.ArrayRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
-import fr.radi3nt.physics.dynamics.island.VectorRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.ode.OdeSolver;
-import fr.radi3nt.physics.dynamics.ode.integrator.Integration;
 import fr.radi3nt.physics.dynamics.ode.integrator.Integrator;
 
 public abstract class RungeKutta4OdeSolver implements OdeSolver {

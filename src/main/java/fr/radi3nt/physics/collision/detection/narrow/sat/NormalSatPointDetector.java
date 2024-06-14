@@ -3,8 +3,6 @@ package fr.radi3nt.physics.collision.detection.narrow.sat;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.collision.shape.sat.SatProjectedObject;
 
-import static java.lang.Math.abs;
-
 public class NormalSatPointDetector {
 
     public float getPenetration(Vector3f point, Vector3f normal, Vector3f[] shape) {

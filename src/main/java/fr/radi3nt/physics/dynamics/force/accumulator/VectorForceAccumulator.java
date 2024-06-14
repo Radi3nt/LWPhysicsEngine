@@ -3,7 +3,6 @@ package fr.radi3nt.physics.dynamics.force.accumulator;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 
-import java.util.Collections;
 import java.util.Vector;
 
 public class VectorForceAccumulator implements ForceAccumulator {

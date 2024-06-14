@@ -1,10 +1,12 @@
-package fr.radi3nt.physics.collision.shape.sat.shape;
+package fr.radi3nt.physics.collision.shape.sat.shape.box;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.shape.sat.clip.ClipPlane;
 import fr.radi3nt.physics.collision.shape.sat.clip.ClipPlanes;
 import fr.radi3nt.physics.collision.shape.sat.clip.Edge;
+import fr.radi3nt.physics.collision.shape.sat.shape.SatShapeObject;
+import fr.radi3nt.physics.collision.shape.sat.shape.StoredSatShapeObject;
 
 public class SatBoxShapeObject extends StoredSatShapeObject implements SatShapeObject {
 

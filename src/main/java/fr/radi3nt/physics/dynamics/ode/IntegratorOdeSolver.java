@@ -1,11 +1,9 @@
 package fr.radi3nt.physics.dynamics.ode;
 
-import fr.radi3nt.physics.dynamics.force.caster.ForceCaster;
 import fr.radi3nt.physics.dynamics.force.accumulator.VectorForceAccumulator;
-import fr.radi3nt.physics.dynamics.island.ArrayListRigidBodyIsland;
+import fr.radi3nt.physics.dynamics.force.caster.ForceCaster;
 import fr.radi3nt.physics.dynamics.island.ArrayRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
-import fr.radi3nt.physics.dynamics.island.VectorRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.ode.integrator.Integrator;
 
 public class IntegratorOdeSolver implements OdeSolver {

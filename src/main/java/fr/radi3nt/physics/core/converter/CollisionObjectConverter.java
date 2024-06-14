@@ -1,6 +1,5 @@
 package fr.radi3nt.physics.core.converter;
 
-import fr.radi3nt.physics.collision.CollisionShapeGroup;
 import fr.radi3nt.physics.core.TransformedObject;
 import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.core.state.RigidBody;

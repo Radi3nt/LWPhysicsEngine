@@ -4,7 +4,6 @@ import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 
 import java.util.Arrays;
-import java.util.Vector;
 
 public class ArrayForceAccumulator implements ForceAccumulator {
 

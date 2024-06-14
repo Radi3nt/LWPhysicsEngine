@@ -3,8 +3,6 @@ package fr.radi3nt.physics.constraints.constraint.list;
 import fr.radi3nt.physics.constraints.constraint.Constraint;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 public class SetConstraintList implements ConstraintList {

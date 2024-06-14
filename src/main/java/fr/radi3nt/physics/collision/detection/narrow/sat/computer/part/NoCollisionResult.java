@@ -31,6 +31,6 @@ public class NoCollisionResult implements CollisionResult {
 
     @Override
     public List<ManifoldPoint> createPoints() {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 }

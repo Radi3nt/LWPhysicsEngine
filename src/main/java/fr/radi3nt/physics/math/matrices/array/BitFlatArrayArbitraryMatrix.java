@@ -1,9 +1,5 @@
 package fr.radi3nt.physics.math.matrices.array;
 
-import fr.radi3nt.maths.components.arbitrary.VectorNf;
-import fr.radi3nt.maths.components.arbitrary.vector.ArrayVectorNf;
-
-import java.util.Arrays;
 import java.util.BitSet;
 
 public class BitFlatArrayArbitraryMatrix extends FlatArrayArbitraryMatrix {

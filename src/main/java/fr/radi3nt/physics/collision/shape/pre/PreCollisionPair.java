@@ -1,10 +1,6 @@
 package fr.radi3nt.physics.collision.shape.pre;
 
-import fr.radi3nt.physics.collision.CollisionData;
-import fr.radi3nt.physics.collision.shape.CollisionShape;
 import fr.radi3nt.physics.core.TransformedObject;
-
-import java.util.Optional;
 
 public class PreCollisionPair {
 

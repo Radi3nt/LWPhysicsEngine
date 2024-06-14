@@ -2,12 +2,11 @@ package fr.radi3nt.physics.main;
 
 import fr.radi3nt.maths.components.advanced.matrix.ArrayMatrix3x3;
 import fr.radi3nt.maths.components.advanced.matrix.Matrix3x3;
-import fr.radi3nt.maths.components.advanced.quaternions.ComponentsQuaternion;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.CollisionData;
 import fr.radi3nt.physics.collision.shape.sat.SatCollisionShape;
 import fr.radi3nt.physics.collision.shape.sat.SetSatCollisionShape;
-import fr.radi3nt.physics.collision.shape.sat.shape.SatBoxShapeObject;
+import fr.radi3nt.physics.collision.shape.sat.shape.box.SatBoxShapeObject;
 import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.core.state.DynamicsProperties;
 import fr.radi3nt.physics.core.state.RigidBody;

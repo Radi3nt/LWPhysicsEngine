@@ -3,7 +3,6 @@ package fr.radi3nt.physics.dynamics.island;
 import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.List;
-import java.util.Vector;
 
 public class ListRigidBodyIsland implements RigidBodyIsland, EditableRigidBodyIsland {
 

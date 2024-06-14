@@ -2,9 +2,7 @@ package fr.radi3nt.physics.constraints.solver.filled;
 
 import fr.radi3nt.maths.components.arbitrary.VectorNf;
 import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule;
-import fr.radi3nt.physics.constraints.constraint.index.RigidBodyIndex;
 import fr.radi3nt.physics.core.state.DynamicsData;
-import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.math.ArbitraryMatrix;
 
 public class FilledData {
