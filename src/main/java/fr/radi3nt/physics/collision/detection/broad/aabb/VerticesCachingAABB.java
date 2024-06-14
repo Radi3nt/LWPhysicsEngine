@@ -71,15 +71,7 @@ public class VerticesCachingAABB implements CachingAABB {
     }
 
     public AxisMapping getxMapping() {
-        float maxX = -Float.MAX_VALUE;
-        float minX = Float.MAX_VALUE;
-
-        Vector3f[] array = cachedTransformedVertices;
-        for (Vector3f currentVertex : array) {
-            maxX = Math.max(maxX, currentVertex.getX());
-            minX = Math.min(minX, currentVertex.getX());
-        }
-        return new AxisMapping(minX, maxX);
+        return getxMapping(new AxisMapping(0, 0));
     }
 
     @Override
@@ -87,8 +79,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxX = -Float.MAX_VALUE;
         float minX = Float.MAX_VALUE;
 
-        Vector3f[] array = cachedTransformedVertices;
-        for (Vector3f currentVertex : array) {
+        for (Vector3f currentVertex : cachedTransformedVertices) {
             maxX = Math.max(maxX, currentVertex.getX());
             minX = Math.min(minX, currentVertex.getX());
         }
@@ -98,15 +89,7 @@ public class VerticesCachingAABB implements CachingAABB {
     }
 
     public AxisMapping getyMapping() {
-        float maxY = -Float.MAX_VALUE;
-        float minY = Float.MAX_VALUE;
-
-        Vector3f[] array = cachedTransformedVertices;
-        for (Vector3f currentVertex : array) {
-            maxY = Math.max(maxY, currentVertex.getY());
-            minY = Math.min(minY, currentVertex.getY());
-        }
-        return new AxisMapping(minY, maxY);
+        return getyMapping(new AxisMapping(0, 0));
     }
 
     @Override
@@ -114,8 +97,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxY = -Float.MAX_VALUE;
         float minY = Float.MAX_VALUE;
 
-        Vector3f[] array = cachedTransformedVertices;
-        for (Vector3f currentVertex : array) {
+        for (Vector3f currentVertex : cachedTransformedVertices) {
             maxY = Math.max(maxY, currentVertex.getY());
             minY = Math.min(minY, currentVertex.getY());
         }
@@ -124,15 +106,7 @@ public class VerticesCachingAABB implements CachingAABB {
     }
 
     public AxisMapping getzMapping() {
-        float maxZ = -Float.MAX_VALUE;
-        float minZ = Float.MAX_VALUE;
-
-        Vector3f[] array = cachedTransformedVertices;
-        for (Vector3f currentVertex : array) {
-            maxZ = Math.max(maxZ, currentVertex.getZ());
-            minZ = Math.min(minZ, currentVertex.getZ());
-        }
-        return new AxisMapping(minZ, maxZ);
+        return getzMapping(new AxisMapping(0, 0));
     }
 
     @Override
@@ -140,8 +114,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxZ = -Float.MAX_VALUE;
         float minZ = Float.MAX_VALUE;
 
-        Vector3f[] array = cachedTransformedVertices;
-        for (Vector3f currentVertex : array) {
+        for (Vector3f currentVertex : cachedTransformedVertices) {
             maxZ = Math.max(maxZ, currentVertex.getZ());
             minZ = Math.min(minZ, currentVertex.getZ());
         }
