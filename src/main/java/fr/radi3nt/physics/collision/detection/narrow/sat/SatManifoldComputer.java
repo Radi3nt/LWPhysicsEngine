@@ -2,7 +2,7 @@ package fr.radi3nt.physics.collision.detection.narrow.sat;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.physics.collision.contact.ContactPair;
+import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.contact.cache.PersistentManifoldCache;
 import fr.radi3nt.physics.collision.contact.manifold.ManifoldPoint;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
@@ -16,43 +16,40 @@ import java.util.Optional;
 public class SatManifoldComputer {
 
     private static final float EPSILON = 1e-1f;
-    private static final float RELATIVE_EPSILON = 2e-1f;
+
     private final Vector3f cache = new SimpleVector3f();
 
-    public Optional<PersistentManifold> compute(PersistentManifoldCache manifoldCache, ContactPair pair, CollisionResult collisionResult) {
+    public Optional<PersistentManifold> compute(PersistentManifoldCache manifoldCache, GeneratedContactPair pair, CollisionResult collisionResult) {
         Optional<PersistentManifold> result = manifoldCache.getCachedManifold(pair);
-        Vector3f directedNormal = collisionResult.getWorldSpaceDirectedNormal();
 
         List<ManifoldPoint> pairResults = createContactPoints(pair, collisionResult);
 
         if (!result.isPresent()) {
             if (!pairResults.isEmpty()) {
                 PersistentManifold current = manifoldCache.newManifold(pair);
-                updateManifoldInformation(current, directedNormal, pair, collisionResult.getOverlap());
-                current.getManifoldPoints().clear();
-                current.getManifoldPoints().addAll(pairResults);
+                current.refresh(pair.objectA, pair.objectB);
+                current.addManifoldPoints(pairResults);
                 return Optional.of(current);
             }
         } else {
+            PersistentManifold manifold = result.get();
+
             Collection<ManifoldPoint> toRemove = new ArrayList<>();
             for (ManifoldPoint manifoldPoint : result.get().getManifoldPoints()) {
-                manifoldPoint.enabled = false;
-
                 for (ManifoldPoint pairResult : pairResults) {
                     if (manifoldPoint.index.equals(pairResult.index)) {
                         pairResult.cachedContactLambda = manifoldPoint.cachedContactLambda;
                         pairResult.cachedFrictionLambda = manifoldPoint.cachedFrictionLambda;
                         toRemove.add(manifoldPoint);
-                        pairResult.enabled = true;
                         break;
                     }
                 }
             }
 
-            updateManifoldInformation(result.get(), directedNormal, pair, collisionResult.getOverlap());
-            //result.get().getManifoldPoints().clear();
-            result.get().getManifoldPoints().removeAll(toRemove);
-            result.get().getManifoldPoints().addAll(pairResults);
+            manifold.refresh(pair.objectA, pair.objectB);
+
+            manifold.getManifoldPoints().removeAll(toRemove);
+            manifold.addManifoldPoints(pairResults);
 
             if (result.get().isEmpty()) {
                 manifoldCache.releaseManifold(pair);
@@ -65,23 +62,16 @@ public class SatManifoldComputer {
         return result;
     }
 
-    private static void updateManifoldInformation(PersistentManifold current, Vector3f normal, ContactPair pair, float currentOverlap) {
-        current.setDistanceThreshold(1e-1f);
-        current.setNormal(normal);
-        current.setPair(pair.objectA, pair.objectB);
-    }
-
-    private List<ManifoldPoint> createContactPoints(ContactPair pair, CollisionResult collisionResult) {
+    private List<ManifoldPoint> createContactPoints(GeneratedContactPair pair, CollisionResult collisionResult) {
         List<ManifoldPoint> pairResults = collisionResult.createPoints();
 
-        removeDuplicatedContactsPoints(pairResults, pair, collisionResult.getWorldSpaceDirectedNormal());
+        removeDuplicatedContactsPoints(pairResults, pair, collisionResult.getWorldSpaceNormal());
         return pairResults;
     }
 
-    private void removeDuplicatedContactsPoints(List<ManifoldPoint> pairResults, ContactPair pair, Vector3f directedNormal) {
+    private void removeDuplicatedContactsPoints(List<ManifoldPoint> pairResults, GeneratedContactPair pair, Vector3f directedNormal) {
         for (ManifoldPoint pairResult : pairResults) {
-            pairResult.enabled = true;
-            pairResult.refresh(pair.objectA, pair.objectB, directedNormal);
+            pairResult.refresh(pair.objectA, pair.objectB);
         }
 
         for (int i = 0; i < pairResults.size(); i++) {
