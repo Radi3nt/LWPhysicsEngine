@@ -9,7 +9,6 @@ import fr.radi3nt.maths.components.vectors.Vector3f;
 public interface CachingAABB extends AABB {
 
     void prepare(Vector3f position, Quaternion rotation);
-    void prepare();
     void release();
 
     void toSetAABB(SetAABB aabb, Vector3f position, Quaternion rotation);
@@ -18,11 +17,6 @@ public interface CachingAABB extends AABB {
         return new CachingAABB() {
             @Override
             public void prepare(Vector3f position, Quaternion rotation) {
-
-            }
-
-            @Override
-            public void prepare() {
 
             }
 

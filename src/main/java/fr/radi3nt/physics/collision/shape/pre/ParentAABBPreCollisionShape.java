@@ -28,11 +28,6 @@ public class ParentAABBPreCollisionShape implements PreCollisionShape {
             }
 
             @Override
-            public void prepare() {
-                aabb.prepare();
-            }
-
-            @Override
             public void release() {
                 aabb.release();
             }

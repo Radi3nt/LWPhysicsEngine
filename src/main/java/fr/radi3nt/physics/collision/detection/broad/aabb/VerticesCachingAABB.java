@@ -5,29 +5,26 @@ import fr.radi3nt.maths.aabb.SetAABB;
 import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.maths.pool.ConcurrentVector3fPool;
-import fr.radi3nt.maths.pool.ListVector3fPool;
 import fr.radi3nt.maths.pool.ObjectPool;
 import fr.radi3nt.maths.pool.Vector3fPool;
 
 public class VerticesCachingAABB implements CachingAABB {
 
     private static final ObjectPool<Vector3f> VECTOR_3_F_POOL = new Vector3fPool();
-    private final Vector3f[] vertices;
-    private final Vector3f[] cachedTransformedVertices;
-    private boolean useLocal = false;
 
-    public VerticesCachingAABB(Vector3f[] vertices) {
-        this.vertices = vertices;
-        cachedTransformedVertices = new Vector3f[vertices.length];
+    private final Vector3f[] originalVertices;
+    private final Vector3f[] cachedTransformedVertices;
+
+    public VerticesCachingAABB(Vector3f[] originalVertices) {
+        this.originalVertices = originalVertices;
+        cachedTransformedVertices = new Vector3f[originalVertices.length];
     }
 
     @Override
     public void prepare(Vector3f position, Quaternion rotation) {
-        useLocal = false;
         for (int i = 0; i < cachedTransformedVertices.length; i++) {
             Vector3f currentVertex = cachedTransformedVertices[i] = VECTOR_3_F_POOL.borrow();
-            currentVertex.copy(vertices[i]);
+            currentVertex.copy(originalVertices[i]);
 
             rotation.transform(currentVertex);
             currentVertex.add(position);
@@ -35,14 +32,7 @@ public class VerticesCachingAABB implements CachingAABB {
     }
 
     @Override
-    public void prepare() {
-        useLocal = true;
-    }
-
-    @Override
     public void release() {
-        if (useLocal)
-            return;
         for (Vector3f cachedTransformedVertex : cachedTransformedVertices) {
             VECTOR_3_F_POOL.free(cachedTransformedVertex);
         }
@@ -61,7 +51,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float minZ = Float.MAX_VALUE;
 
         Vector3f currentVertex = new SimpleVector3f();
-        for (Vector3f vertex : vertices) {
+        for (Vector3f vertex : originalVertices) {
             currentVertex.copy(vertex);
 
             rotation.transform(currentVertex);
@@ -84,7 +74,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxX = -Float.MAX_VALUE;
         float minX = Float.MAX_VALUE;
 
-        Vector3f[] array = useLocal ? vertices : cachedTransformedVertices;
+        Vector3f[] array = cachedTransformedVertices;
         for (Vector3f currentVertex : array) {
             maxX = Math.max(maxX, currentVertex.getX());
             minX = Math.min(minX, currentVertex.getX());
@@ -97,7 +87,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxX = -Float.MAX_VALUE;
         float minX = Float.MAX_VALUE;
 
-        Vector3f[] array = useLocal ? vertices : cachedTransformedVertices;
+        Vector3f[] array = cachedTransformedVertices;
         for (Vector3f currentVertex : array) {
             maxX = Math.max(maxX, currentVertex.getX());
             minX = Math.min(minX, currentVertex.getX());
@@ -111,7 +101,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxY = -Float.MAX_VALUE;
         float minY = Float.MAX_VALUE;
 
-        Vector3f[] array = useLocal ? vertices : cachedTransformedVertices;
+        Vector3f[] array = cachedTransformedVertices;
         for (Vector3f currentVertex : array) {
             maxY = Math.max(maxY, currentVertex.getY());
             minY = Math.min(minY, currentVertex.getY());
@@ -124,7 +114,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxY = -Float.MAX_VALUE;
         float minY = Float.MAX_VALUE;
 
-        Vector3f[] array = useLocal ? vertices : cachedTransformedVertices;
+        Vector3f[] array = cachedTransformedVertices;
         for (Vector3f currentVertex : array) {
             maxY = Math.max(maxY, currentVertex.getY());
             minY = Math.min(minY, currentVertex.getY());
@@ -137,7 +127,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxZ = -Float.MAX_VALUE;
         float minZ = Float.MAX_VALUE;
 
-        Vector3f[] array = useLocal ? vertices : cachedTransformedVertices;
+        Vector3f[] array = cachedTransformedVertices;
         for (Vector3f currentVertex : array) {
             maxZ = Math.max(maxZ, currentVertex.getZ());
             minZ = Math.min(minZ, currentVertex.getZ());
@@ -150,7 +140,7 @@ public class VerticesCachingAABB implements CachingAABB {
         float maxZ = -Float.MAX_VALUE;
         float minZ = Float.MAX_VALUE;
 
-        Vector3f[] array = useLocal ? vertices : cachedTransformedVertices;
+        Vector3f[] array = cachedTransformedVertices;
         for (Vector3f currentVertex : array) {
             maxZ = Math.max(maxZ, currentVertex.getZ());
             minZ = Math.min(minZ, currentVertex.getZ());
