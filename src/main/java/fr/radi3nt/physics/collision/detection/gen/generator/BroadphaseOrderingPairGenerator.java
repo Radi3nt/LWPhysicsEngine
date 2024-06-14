@@ -26,6 +26,7 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
     @Override
     public void pair(List<ContactPair> pairList, RigidBody a, RigidBody b) {
         if ((a.getSleepingData().isSleeping() || a.getDynamicsData().getBodyProperties().inverseMass==0) && (b.getSleepingData().isSleeping()  || b.getDynamicsData().getBodyProperties().inverseMass==0))
+        if (a.canIgnoreCollisionDetection() && b.canIgnoreCollisionDetection())
             return;
 
         PreCollisionPair pair = new PreCollisionPair(a, b);

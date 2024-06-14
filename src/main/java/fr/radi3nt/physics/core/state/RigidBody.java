@@ -49,6 +49,10 @@ public class RigidBody implements TransformedObject {
         return dynamicsData.getPosition();
     }
 
+    public boolean canIgnoreCollisionDetection() {
+        return sleepingData.isSleeping() || dynamicsData.getBodyProperties().inverseMass==0;
+    }
+
     @Override
     public Quaternion getRotation() {
         return dynamicsData.getRotation();
