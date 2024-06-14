@@ -2,12 +2,9 @@ package fr.radi3nt.physics.collision.contact.manifold;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.physics.collision.CollisionShapeGroup;
 import fr.radi3nt.physics.core.TransformedObject;
 
 import java.util.Objects;
-
-import static java.lang.Math.abs;
 
 public class ManifoldPoint {
 
@@ -17,6 +14,8 @@ public class ManifoldPoint {
     public final Vector3f worldSpaceA = new SimpleVector3f();
     public final Vector3f worldSpaceB = new SimpleVector3f();
 
+    public final Vector3f normalFromAToB;
+
     public final PointIndex index;
 
     public float projectedDistance;
@@ -24,34 +23,28 @@ public class ManifoldPoint {
     public float cachedContactLambda;
     public float[] cachedFrictionLambda = new float[2];
 
-    public boolean enabled = false;
-
-    public ManifoldPoint(PointIndex index, Vector3f localSpaceAPoint, Vector3f localSpaceBPoint) {
+    public ManifoldPoint(PointIndex index, Vector3f localSpaceAPoint, Vector3f localSpaceBPoint, Vector3f normal) {
         this.localSpaceAPoint = localSpaceAPoint;
         this.localSpaceBPoint = localSpaceBPoint;
         this.index = index;
+        this.normalFromAToB = normal;
     }
 
-    public void refresh(TransformedObject objectA, TransformedObject objectB, Vector3f projectingNormal) {
+    public void refresh(TransformedObject objectA, TransformedObject objectB) {
         objectA.toWorldSpace(localSpaceAPoint, worldSpaceA);
         objectB.toWorldSpace(localSpaceBPoint, worldSpaceB);
-        projectedDistance = worldSpaceA.duplicate().sub(worldSpaceB).dot(projectingNormal);
+        projectedDistance = worldSpaceB.duplicate().sub(worldSpaceA.duplicate()).dot(normalFromAToB);
     }
 
     public boolean orthogonalDistanceExceedThreshold(float distanceThreshold) {
-        Vector3f projectedPoint = worldSpaceA.duplicate().sub(worldSpaceB.duplicate().mul(projectedDistance));
-        Vector3f projectedDifference = worldSpaceB.duplicate().sub(projectedPoint);
+        Vector3f projectedPoint = worldSpaceB.duplicate().sub(normalFromAToB.duplicate().mul(projectedDistance));
+        Vector3f projectedDifference = worldSpaceA.duplicate().sub(projectedPoint);
         float dist = projectedDifference.lengthSquared();
-        return dist>=distanceThreshold*distanceThreshold;
+        return dist>distanceThreshold*distanceThreshold;
     }
 
     public boolean exceedSignedProjectedDistanceThreshold(float threshold) {
         return projectedDistance >= threshold;
-    }
-
-    public boolean exceedDistanceThreshold(float threshold) {
-        double dist = worldSpaceA.duplicate().sub(worldSpaceB).lengthSquared();
-        return dist >= threshold*threshold;
     }
 
     public Vector3f getDirectionFromCenterOfMassToPointA(TransformedObject a) {
