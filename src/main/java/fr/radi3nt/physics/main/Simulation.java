@@ -3,11 +3,11 @@ package fr.radi3nt.physics.main;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.contact.cache.ContactPairCacheProvider;
 import fr.radi3nt.physics.collision.contact.cache.HashPersistentManifoldCache;
-import fr.radi3nt.physics.collision.contact.cache.ListContactPairCache;
+import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.detection.CollisionDetection;
-import fr.radi3nt.physics.collision.detection.broad.aabb.AABBBroadPhaseDetectionStrategy;
-import fr.radi3nt.physics.collision.detection.broad.SphereBroadPhaseDetectionStrategy;
 import fr.radi3nt.physics.collision.detection.broad.BroadPhaseStrategies;
+import fr.radi3nt.physics.collision.detection.broad.SphereBroadPhaseDetectionStrategy;
+import fr.radi3nt.physics.collision.detection.broad.aabb.AABBBroadPhaseDetectionStrategy;
 import fr.radi3nt.physics.collision.detection.gen.DimensionalContactPairCacheProvider;
 import fr.radi3nt.physics.collision.detection.gen.generator.BroadphaseOrderingPairGenerator;
 import fr.radi3nt.physics.collision.detection.gen.generator.PairGenerator;
@@ -30,18 +30,16 @@ import fr.radi3nt.physics.constraints.solver.caching.WarmStartingConstraintCache
 import fr.radi3nt.physics.constraints.solver.filled.ListConstraintFiller;
 import fr.radi3nt.physics.constraints.solver.mass.InverseMassMatrixComputer;
 import fr.radi3nt.physics.constraints.solver.mass.SparseInverseMassMatrixComputer;
-import fr.radi3nt.physics.core.TransformedObject;
-import fr.radi3nt.physics.core.converter.CollisionObjectConverter;
-import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.force.caster.CompositeForceCaster;
+import fr.radi3nt.physics.dynamics.force.caster.FluidDragForceCaster;
 import fr.radi3nt.physics.dynamics.force.caster.MassedVectorForceCaster;
 import fr.radi3nt.physics.dynamics.island.ArrayListRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.ListRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 import fr.radi3nt.physics.dynamics.ode.OdeSolver;
-import fr.radi3nt.physics.dynamics.ode.rk4.AverageRungeKutta4OdeSolver;
 import fr.radi3nt.physics.dynamics.ode.integrator.ImplicitEulerIntegrator;
+import fr.radi3nt.physics.dynamics.ode.rk4.AverageRungeKutta4OdeSolver;
 import fr.radi3nt.physics.multithread.link.group.ConstraintBodyRelationLinkTreeGrouper;
 import fr.radi3nt.physics.multithread.link.tree.ListConstraintsBodyRelationLinkTree;
 import fr.radi3nt.physics.multithread.splitter.ConstrainedIsland;
@@ -60,13 +58,14 @@ public class Simulation {
     private final OdeSolver odeSolver;
 
     private final HashPersistentManifoldCache manifoldCache = new HashPersistentManifoldCache();
-    private final SimultaneousImpulseRestingContactSolver solver;
     public final InstantConstraintList instantConstraintList = new InstantConstraintList();
     private final ImpulseConstraintSolver impulseConstraintSolver;
     private final IslandSplitter islandSplitter;
     private final ListConstraintsBodyRelationLinkTree bodyRelationLinkTree;
+    private final CompositionCollisionContactSolver collisionContactSolver;
 
     public final Collection<Runnable> afterSimulationUpdate = new ArrayList<>();
+    public final Collection<Runnable> collisionSimulationUpdate = new ArrayList<>();
     public final Collection<Runnable> beforeSimulationUpdate = new ArrayList<>();
 
     private RigidBodyIsland result;
@@ -80,29 +79,16 @@ public class Simulation {
 
         PairGenerator pairGenerator = new BroadphaseOrderingPairGenerator(new BroadPhaseStrategies(new SphereBroadPhaseDetectionStrategy()));
         ContactPairCacheProvider aabbCacheProvider = new DimensionalContactPairCacheProvider(() -> result, pairGenerator, new AABBOneDimensionProvider());
-        ContactPairCacheProvider naiveCacheProvider = () -> ListContactPairCache.fromIsland(result, pairGenerator);
-
-        CollisionObjectConverter converter = new CollisionObjectConverter() {
-            @Override
-            public DynamicsData getData(TransformedObject object) {
-                return ((RigidBody) object).getDynamicsData();
-            }
-
-            @Override
-            public RigidBody getBody(TransformedObject object) {
-                return ((RigidBody) object);
-            }
-        };
 
         SetWarmStartingLambdaProvider provider = new SetWarmStartingLambdaProvider(0.9f);
         //InverseMassMatrixComputer inverseMassMatrixComputer = new ArrayInverseMassMatrixComputer();
         InverseMassMatrixComputer inverseMassMatrixComputer = new SparseInverseMassMatrixComputer();
         impulseConstraintSolver = new ImpulseConstraintSolver(inverseMassMatrixComputer, new WarmStartingConstraintCacher(provider), new ProjectedGaussSeidelSolver(5e-2f, 20, provider));
-        solver = new SimultaneousImpulseRestingContactSolver(
-                converter,
-                new SimpleNoPenetrationConstraintProvider(new DriftParameters(0.05f), converter),
+        SimultaneousImpulseRestingContactSolver solver = new SimultaneousImpulseRestingContactSolver(
+                new SimpleNoPenetrationConstraintProvider(new DriftParameters(0.05f)),
                 instantConstraintList);
-        collisionDetection = new CollisionDetection(aabbCacheProvider, manifoldCache, new SetCollisionDispatcher(new SATNarrowPhaseDetectionAlgorithm()), new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(30), solver));
+        collisionContactSolver = new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(30), solver);
+        collisionDetection = new CollisionDetection(aabbCacheProvider, manifoldCache, new SetCollisionDispatcher(new SATNarrowPhaseDetectionAlgorithm()));
         bodyRelationLinkTree = new ListConstraintsBodyRelationLinkTree();
         islandSplitter = new GroupIslandSplitter(new ConstraintBodyRelationLinkTreeGrouper(bodyRelationLinkTree, instantConstraintList), false);
     }
@@ -115,7 +101,13 @@ public class Simulation {
         manifoldCache.setCurrentStep(step);
 
         result = odeSolver.integrate(rigidBodyIsland, dt);
-        collisionDetection.process(dt);
+        Collection<PersistentManifold> process = collisionDetection.process(dt);
+
+        for (Runnable runnable : collisionSimulationUpdate) {
+            runnable.run();
+        }
+
+        collisionContactSolver.solve(process, dt);
 
         bodyRelationLinkTree.setMainIsland(result);
         ConstrainedIsland[] islands = islandSplitter.getIslands(result);
@@ -180,6 +172,10 @@ public class Simulation {
                 wakeRecursively(rigidBody, addedSize);
             }
         }
+    }
+
+    public long getStep() {
+        return step;
     }
 
     public ListRigidBodyIsland getRigidBodyIsland() {
