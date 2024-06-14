@@ -24,17 +24,15 @@ public class SimpleNoPenetrationConstraintProvider implements NoPenetrationConst
             new SimpleVector3f(0, 0, 1),
     };
     private final DriftParameters driftParameters;
-    private final CollisionObjectConverter converter;
 
-    public SimpleNoPenetrationConstraintProvider(DriftParameters driftParameters, CollisionObjectConverter converter) {
+    public SimpleNoPenetrationConstraintProvider(DriftParameters driftParameters) {
         this.driftParameters = driftParameters;
-        this.converter = converter;
     }
 
     @Override
     public void addConstraint(Collection<Constraint> constraints, PersistentManifold persistentManifold, ContactPoint contactPoint) {
-        RigidBodyIndex indexA = new ImplicitRigidBodyIndex(converter.getBody(persistentManifold.getObjectA()));
-        RigidBodyIndex indexB = new ImplicitRigidBodyIndex(converter.getBody(persistentManifold.getObjectB()));
+        RigidBodyIndex indexA = new ImplicitRigidBodyIndex(persistentManifold.getObjectA());
+        RigidBodyIndex indexB = new ImplicitRigidBodyIndex(persistentManifold.getObjectB());
         constraints.add(new NoPenetrationConstraint(driftParameters, contactPoint.normal, contactPoint.rA, contactPoint.rB, indexA, indexB, new ArrayCachingModuleProvider(new NoPenetrationCachingConstraintModule(contactPoint.manifoldPoint))));
 
         Vector3f randomVec = chooseAxis(contactPoint.normal);
@@ -58,9 +56,5 @@ public class SimpleNoPenetrationConstraintProvider implements NoPenetrationConst
             i++;
         }
         return random;
-    }
-
-    private static double random() {
-        return Math.random() * 2 - 1;
     }
 }
