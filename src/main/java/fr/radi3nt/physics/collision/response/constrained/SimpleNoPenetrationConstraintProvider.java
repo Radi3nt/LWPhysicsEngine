@@ -2,18 +2,15 @@ package fr.radi3nt.physics.collision.response.constrained;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.physics.collision.contact.manifold.ManifoldPoint;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.contact.manifold.contact.ContactPoint;
 import fr.radi3nt.physics.constraints.constraint.Constraint;
 import fr.radi3nt.physics.constraints.constraint.DriftParameters;
 import fr.radi3nt.physics.constraints.constraint.caching.provider.ArrayCachingModuleProvider;
-import fr.radi3nt.physics.constraints.constraint.caching.provider.EmptyCachingModuleProvider;
 import fr.radi3nt.physics.constraints.constraint.constraints.FrictionConstraint;
 import fr.radi3nt.physics.constraints.constraint.constraints.NoPenetrationConstraint;
 import fr.radi3nt.physics.constraints.constraint.index.ImplicitRigidBodyIndex;
 import fr.radi3nt.physics.constraints.constraint.index.RigidBodyIndex;
-import fr.radi3nt.physics.core.converter.CollisionObjectConverter;
 
 import java.util.Collection;
 
@@ -40,11 +37,11 @@ public class SimpleNoPenetrationConstraintProvider implements NoPenetrationConst
         RigidBodyIndex indexB = new ImplicitRigidBodyIndex(converter.getBody(persistentManifold.getObjectB()));
         constraints.add(new NoPenetrationConstraint(driftParameters, contactPoint.normal, contactPoint.rA, contactPoint.rB, indexA, indexB, new ArrayCachingModuleProvider(new NoPenetrationCachingConstraintModule(contactPoint.manifoldPoint))));
 
-        Vector3f randomVec = chooseAxis(persistentManifold.getContactNormal());
+        Vector3f randomVec = chooseAxis(contactPoint.normal);
         if (randomVec==null)
             return;
-        Vector3f tangent = persistentManifold.getContactNormal().duplicate().cross(randomVec).normalize();
-        Vector3f otherTangent = persistentManifold.getContactNormal().duplicate().cross(tangent);
+        Vector3f tangent = contactPoint.normal.duplicate().cross(randomVec).normalize();
+        Vector3f otherTangent = contactPoint.normal.duplicate().cross(tangent);
         float uk = contactPoint.a.getBodyProperties().kineticFrictionFactor*contactPoint.b.getBodyProperties().kineticFrictionFactor;
         float relativeVel = contactPoint.manifoldPoint.cachedContactLambda;
         if (relativeVel!=0 && uk!=0)
