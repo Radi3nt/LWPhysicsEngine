@@ -1,18 +1,21 @@
 package fr.radi3nt.physics.collision;
 
+import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.shape.CollisionShape;
 import fr.radi3nt.physics.collision.shape.pre.PreCollisionShape;
 import fr.radi3nt.physics.collision.shape.provider.CollisionShapeProvider;
 import fr.radi3nt.physics.collision.shape.provider.SetCollisionShapeProvider;
-import fr.radi3nt.physics.core.TransformedObject;
 import fr.radi3nt.physics.core.state.RigidBody;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class CollisionData implements CollisionShapeGroup {
 
     private final CollisionShapeProvider collisionShapeProvider;
     private final PreCollisionShape preCollisionShape;
+
+    private final Collection<PersistentManifold> currentCollisions = new ArrayList<>();
 
     public CollisionData(CollisionShape collisionShape) {
         this.collisionShapeProvider = new SetCollisionShapeProvider(collisionShape);
@@ -39,5 +42,9 @@ public class CollisionData implements CollisionShapeGroup {
 
     public PreCollisionShape getPreCollisionShape() {
         return preCollisionShape;
+    }
+
+    public Collection<PersistentManifold> getCurrentCollisions() {
+        return currentCollisions;
     }
 }

@@ -1,18 +1,16 @@
 package fr.radi3nt.physics.collision.detection.gen.tools;
 
-import fr.radi3nt.physics.collision.contact.ContactPair;
+import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.detection.gen.generator.PairGenerator;
 import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class OneDimensionPairMeeter {
 
     private final List<RigidBody> activeList = new ArrayList<>();
-    private final List<ContactPair> pairs = new ArrayList<>();
+    private final List<GeneratedContactPair> pairs = new ArrayList<>();
 
     private final PairGenerator pairGenerator;
     public OneDimensionPairMeeter(PairGenerator pairGenerator) {
@@ -39,7 +37,7 @@ public class OneDimensionPairMeeter {
         }
     }
 
-    public List<ContactPair> getPairs() {
+    public List<GeneratedContactPair> getPairs() {
         return pairs;
     }
 }

@@ -1,11 +1,9 @@
 package fr.radi3nt.physics.collision.detection.narrow.sat.computer;
 
-import fr.radi3nt.physics.collision.contact.ContactPair;
-import fr.radi3nt.physics.collision.detection.narrow.sat.computer.part.CollisionDetector;
-import fr.radi3nt.physics.collision.detection.narrow.sat.computer.part.ManifoldPointBuilder;
+import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 
 public interface CollisionGenerator {
 
-    CollisionResult test(ContactPair contactPair);
+    CollisionResult test(GeneratedContactPair contactPair);
 
 }

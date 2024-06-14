@@ -1,31 +1,35 @@
 package fr.radi3nt.physics.collision.contact;
 
-import fr.radi3nt.physics.collision.CollisionShapeGroup;
 import fr.radi3nt.physics.collision.shape.CollisionShape;
-import fr.radi3nt.physics.core.TransformedObject;
+import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.Objects;
 
-public class ContactPair {
+public class GeneratedContactPair {
 
-    public final TransformedObject objectA;
+    public final RigidBody objectA;
+    public final RigidBody objectB;
+
     public final CollisionShape shapeA;
-    public final TransformedObject objectB;
     public final CollisionShape shapeB;
 
-    public ContactPair(TransformedObject objectA, CollisionShape shapeA, TransformedObject objectB, CollisionShape shapeB) {
+    public GeneratedContactPair(RigidBody objectA, CollisionShape shapeA, RigidBody objectB, CollisionShape shapeB) {
         this.objectA = objectA;
         this.shapeA = shapeA;
         this.objectB = objectB;
         this.shapeB = shapeB;
     }
 
+    public ContactKeyPair toPair() {
+        return new ContactKeyPair(objectA.getRigidBodyId(), objectB.getRigidBodyId(), shapeA, shapeB);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ContactPair)) return false;
+        if (!(o instanceof GeneratedContactPair)) return false;
 
-        ContactPair that = (ContactPair) o;
+        GeneratedContactPair that = (GeneratedContactPair) o;
 
         if (!Objects.equals(objectA, that.objectA)) return false;
         if (!Objects.equals(shapeA, that.shapeA)) return false;

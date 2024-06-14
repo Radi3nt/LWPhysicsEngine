@@ -1,6 +1,6 @@
 package fr.radi3nt.physics.collision.detection.narrow.sat;
 
-import fr.radi3nt.physics.collision.contact.ContactPair;
+import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.contact.cache.PersistentManifoldCache;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.detection.narrow.NarrowPhaseDetectionAlgorithm;
@@ -12,8 +12,6 @@ import java.util.Optional;
 
 public class SATNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlgorithm {
 
-    //private final CollisionGenerator generator = new CombiningCollisionGenerator(PENETRATION_EPSILON);
-    //private final CollisionGenerator generator = new RelativeCollisionGenerator(PENETRATION_EPSILON);
     private final CollisionGenerator generator = new NormalCollisionGenerator();
     private final SatManifoldComputer manifoldComputer;
 
@@ -22,7 +20,7 @@ public class SATNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
     }
 
     @Override
-    public Optional<PersistentManifold> buildManifolds(PersistentManifoldCache manifoldCache, ContactPair pair) {
+    public Optional<PersistentManifold> buildManifolds(PersistentManifoldCache manifoldCache, GeneratedContactPair pair) {
         CollisionResult collision = generator.test(pair);
 
         if (!collision.isCollision()) {
