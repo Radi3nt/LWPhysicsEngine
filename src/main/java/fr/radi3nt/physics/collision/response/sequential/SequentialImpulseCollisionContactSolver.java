@@ -6,7 +6,6 @@ import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.contact.manifold.contact.ContactPoint;
 import fr.radi3nt.physics.collision.response.CollisionContactSolver;
 import fr.radi3nt.physics.core.state.DynamicsData;
-import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.sleeping.SleepingData;
 
 import java.util.Collection;
@@ -24,18 +23,15 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
     @Override
     public void solve(Collection<PersistentManifold> manifolds, float dt) {
         for (PersistentManifold manifold : manifolds) {
-            computeManifold(manifold, ((RigidBody) manifold.getObjectA()).getDynamicsData(), ((RigidBody) manifold.getObjectB()).getDynamicsData(), ((RigidBody) manifold.getObjectA()).getSleepingData(), ((RigidBody) manifold.getObjectB()).getSleepingData());
+            computeManifold(manifold, manifold.getObjectA().getDynamicsData(), manifold.getObjectB().getDynamicsData(), manifold.getObjectA().getSleepingData(), manifold.getObjectB().getSleepingData());
         }
     }
 
     private void computeManifold(PersistentManifold manifold, DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB) {
-        manifold.refresh();
-
-        if (canIgnore(a, sleepA) && canIgnore(b, sleepB))
-            return;
-
         ContactPoint[] contactPoints = manifold.getContactPoints(a, b);
         float[] staticValues = new float[contactPoints.length];
+        float[] initialRelativeVel = new float[contactPoints.length];
+        Vector3f[] initialRelativeVec = new Vector3f[contactPoints.length];
 
         for (int i = 0; i < contactPoints.length; i++) {
             ContactPoint contactPoint = contactPoints[i];
@@ -60,8 +56,72 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             float angularEffect = inertiaA.add(inertiaB).dot(normal);
 
             staticValues[i] = (totalMass + angularEffect);
+
+            contactPoint.computeRealVelocity();
+            initialRelativeVel[i] = contactPoint.getRelativeVelocityAlongNormal();
+            initialRelativeVec[i] = contactPoint.getRelativeVelocityVec().duplicate();
         }
 
+        removeOverlap(a, b, sleepA, sleepB, contactPoints, staticValues);
+
+        for (ContactPoint contactPoint : contactPoints) {
+            contactPoint.computeRealVelocity();
+        }
+
+        applyBounce(a, b, contactPoints, initialRelativeVel, initialRelativeVec, staticValues);
+
+    }
+
+    private static void applyBounce(DynamicsData a, DynamicsData b, ContactPoint[] contactPoints, float[] initialRelativeVel, Vector3f[] initialRelativeVec, float[] staticValues) {
+        for (int i = 0; i < contactPoints.length; i++) {
+            ContactPoint contactPoint = contactPoints[i];
+            float relativeVel = initialRelativeVel[i];
+            if (relativeVel>=0)
+                continue;
+
+            Vector3f relativeVelVec = initialRelativeVec[i];
+
+            float epsilon = a.getBodyProperties().bouncingFactor * b.getBodyProperties().bouncingFactor;
+            if (epsilon<=0)
+                continue;
+
+            float uk = a.getBodyProperties().kineticFrictionFactor * b.getBodyProperties().kineticFrictionFactor;
+            float us = a.getBodyProperties().staticFrictionFactor * b.getBodyProperties().staticFrictionFactor;
+            Vector3f normal = contactPoint.normal;
+
+            Vector3f ra = contactPoint.rA;
+            Vector3f rb = contactPoint.rB;
+
+            float impulseForce = relativeVel;
+            float numerator = -((epsilon) * impulseForce);
+
+
+            float frictionFactor = uk;
+
+            Vector3f t = normal.duplicate().cross(normal.duplicate().cross(relativeVelVec.duplicate()));
+            float currentNormalForce = abs(relativeVelVec.dot(normal));
+            float currentTangentForce = abs(relativeVelVec.dot(t));
+            float forceRequiredToSlide = us*abs(impulseForce);
+            if (currentTangentForce<forceRequiredToSlide)
+                frictionFactor = us*currentTangentForce;
+
+            if(currentNormalForce>0.99f)
+                frictionFactor = 0;
+
+            Vector3f dir = normal.duplicate().add(t.mul(frictionFactor));
+
+            float j = numerator / staticValues[i];
+            Vector3f fullImpulse = dir.duplicate().mul(j);
+
+            b.addLinearImpulse(fullImpulse);
+            b.addAngularImpulse(rb.duplicate().cross(fullImpulse.duplicate()));
+
+            a.addLinearImpulse(fullImpulse.duplicate().negate());
+            a.addAngularImpulse(ra.duplicate().cross(fullImpulse.duplicate().negate()));
+        }
+    }
+
+    private void removeOverlap(DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB, ContactPoint[] contactPoints, float[] staticValues) {
         for (int currentIteration = 0; currentIteration < iterationCount; currentIteration++) {
             for (ContactPoint contactPoint : contactPoints) {
                 contactPoint.computeRealVelocity();
@@ -77,7 +137,6 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
 
                 atLeastOneContactCollided = true;
 
-                float epsilon = a.getBodyProperties().bouncingFactor * b.getBodyProperties().bouncingFactor;
                 float uk = a.getBodyProperties().kineticFrictionFactor * b.getBodyProperties().kineticFrictionFactor;
                 float us = a.getBodyProperties().staticFrictionFactor * b.getBodyProperties().staticFrictionFactor;
                 Vector3f normal = contactPoint.normal;
@@ -86,7 +145,7 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
                 Vector3f rb = contactPoint.rB;
 
                 float impulseForce = contactPoint.getRelativeVelocityAlongNormal();
-                float numerator = -((1f + epsilon) * impulseForce);
+                float numerator = -(impulseForce);
 
 
                 float frictionFactor = uk;
@@ -114,10 +173,6 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             if (!atLeastOneContactCollided)
                 return;
         }
-    }
-
-    private static boolean canIgnore(DynamicsData data, SleepingData sleepB) {
-        return sleepB.isSleeping() || data.getBodyProperties().inverseMass==0;
     }
 
 }
