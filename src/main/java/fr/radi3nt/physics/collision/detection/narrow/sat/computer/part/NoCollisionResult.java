@@ -30,11 +30,6 @@ public class NoCollisionResult implements CollisionResult {
     }
 
     @Override
-    public Vector3f getWorldSpaceDirectedNormal() {
-        return null;
-    }
-
-    @Override
     public List<ManifoldPoint> createPoints() {
         return Collections.EMPTY_LIST;
     }

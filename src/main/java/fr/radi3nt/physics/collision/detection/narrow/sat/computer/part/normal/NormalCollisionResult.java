@@ -14,7 +14,7 @@ public class NormalCollisionResult implements CollisionResult {
     private ShapedPair shapedPair;
 
     private Vector3f worldSpaceNormal;
-    private int normal;
+    private int normalDirection;
     private float overlap;
 
     public NormalCollisionResult(NormalReuseManifoldPointBuilder pointBuilder) {
@@ -24,7 +24,7 @@ public class NormalCollisionResult implements CollisionResult {
     public void set(ShapedPair shapedPair, Vector3f worldSpaceNormal, int normal, float overlap) {
         this.shapedPair = shapedPair;
         this.worldSpaceNormal = worldSpaceNormal;
-        this.normal = normal;
+        this.normalDirection = normal;
         this.overlap = overlap;
     }
 
@@ -40,17 +40,12 @@ public class NormalCollisionResult implements CollisionResult {
 
     @Override
     public Vector3f getWorldSpaceNormal() {
-        return worldSpaceNormal;
-    }
-
-    @Override
-    public Vector3f getWorldSpaceDirectedNormal() {
-        return worldSpaceNormal.duplicate().mul(normal);
+        return worldSpaceNormal.duplicate().mul(normalDirection);
     }
 
     @Override
     public List<ManifoldPoint> createPoints() {
-        return pointBuilder.computeManifolds(shapedPair, getWorldSpaceDirectedNormal(), getOverlap(), normal);
+        return pointBuilder.computeManifolds(shapedPair, getWorldSpaceNormal(), getOverlap(), normalDirection);
     }
 
     @Override
@@ -59,7 +54,7 @@ public class NormalCollisionResult implements CollisionResult {
                 "pointBuilder=" + pointBuilder +
                 ", shapedPair=" + shapedPair +
                 ", worldSpaceNormal=" + worldSpaceNormal +
-                ", normal=" + normal +
+                ", normalDirection=" + normalDirection +
                 ", overlap=" + overlap +
                 '}';
     }
