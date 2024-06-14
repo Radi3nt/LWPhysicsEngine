@@ -7,8 +7,9 @@ import fr.radi3nt.maths.components.advanced.quaternions.ComponentsQuaternion;
 import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
+import fr.radi3nt.physics.core.TransformedObject;
 
-public class DynamicsData {
+public class DynamicsData implements TransformedObject {
 
     private final DynamicsProperties dynamicsProperties;
 
