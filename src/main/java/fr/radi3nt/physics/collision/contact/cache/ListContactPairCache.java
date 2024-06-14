@@ -1,22 +1,24 @@
 package fr.radi3nt.physics.collision.contact.cache;
 
-import fr.radi3nt.physics.collision.contact.ContactPair;
+import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.detection.gen.generator.PairGenerator;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 public class ListContactPairCache implements ContactPairCache {
 
-    private final List<ContactPair> contactPairs;
+    private final List<GeneratedContactPair> contactPairs;
 
-    public ListContactPairCache(List<ContactPair> contactPairs) {
+    public ListContactPairCache(List<GeneratedContactPair> contactPairs) {
         this.contactPairs = contactPairs;
     }
 
     public static ListContactPairCache fromIsland(RigidBodyIsland rigidBodyIsland, PairGenerator pairGenerator) {
-        List<ContactPair> pairs = new ArrayList<>();
+        List<GeneratedContactPair> pairs = new ArrayList<>();
         for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
             for (int j = 0; j < rigidBodyIsland.getSize(); j++) {
                 if (i>j) {
@@ -37,12 +39,12 @@ public class ListContactPairCache implements ContactPairCache {
     }
 
     @Override
-    public ContactPair[] collection() {
-        return contactPairs.toArray(new ContactPair[0]);
+    public GeneratedContactPair[] collection() {
+        return contactPairs.toArray(new GeneratedContactPair[0]);
     }
 
     @Override
-    public ListIterator<ContactPair> iterator() {
+    public ListIterator<GeneratedContactPair> iterator() {
         return contactPairs.listIterator();
     }
 

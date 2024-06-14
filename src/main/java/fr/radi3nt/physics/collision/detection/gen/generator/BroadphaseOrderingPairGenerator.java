@@ -1,17 +1,12 @@
 package fr.radi3nt.physics.collision.detection.gen.generator;
 
-import fr.radi3nt.physics.collision.contact.ContactPair;
-import fr.radi3nt.physics.collision.detection.broad.aabb.CachingAABB;
+import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.shape.CollisionShape;
 import fr.radi3nt.physics.collision.shape.pre.PreCollisionPair;
-import fr.radi3nt.physics.collision.shape.pre.PreCollisionShape;
 import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public class BroadphaseOrderingPairGenerator implements PairGenerator {
@@ -24,8 +19,7 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
     }
 
     @Override
-    public void pair(List<ContactPair> pairList, RigidBody a, RigidBody b) {
-        if ((a.getSleepingData().isSleeping() || a.getDynamicsData().getBodyProperties().inverseMass==0) && (b.getSleepingData().isSleeping()  || b.getDynamicsData().getBodyProperties().inverseMass==0))
+    public void pair(List<GeneratedContactPair> pairList, RigidBody a, RigidBody b) {
         if (a.canIgnoreCollisionDetection() && b.canIgnoreCollisionDetection())
             return;
 
@@ -43,7 +37,7 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
         }
     }
 
-    private static ContactPair getContactPairs(RigidBody rigidBodyA, RigidBody rigidBodyB, CollisionShape a, CollisionShape b) {
+    private static GeneratedContactPair getContactPairs(RigidBody rigidBodyA, RigidBody rigidBodyB, CollisionShape a, CollisionShape b) {
         int compare = rigidBodyComparator.compare(rigidBodyA, rigidBodyB);
         if (compare < 0) {
             CollisionShape cacheShape = a;
@@ -54,6 +48,6 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
             rigidBodyB = cacheRigidBody;
         }
 
-        return new ContactPair(rigidBodyA, a, rigidBodyB, b);
+        return new GeneratedContactPair(rigidBodyA, a, rigidBodyB, b);
     }
 }
