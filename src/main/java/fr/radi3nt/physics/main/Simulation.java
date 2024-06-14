@@ -68,11 +68,23 @@ public class Simulation {
     public final Collection<Runnable> collisionSimulationUpdate = new ArrayList<>();
     public final Collection<Runnable> beforeSimulationUpdate = new ArrayList<>();
 
+    public final FluidDragForceCaster airDrag = new FluidDragForceCaster(new FluidDragForceCaster.DragProperties(1.225f, new SimpleVector3f(0, 0, 0)), new FluidDragForceCaster.DragCoefficientSupplier() {
+        @Override
+        public float getSurfaceCoefficient(RigidBody body) {
+            return 0.3f;
+        }
+
+        @Override
+        public float getDragCoefficient(RigidBody body) {
+            return 1.15f;
+        }
+    });
+
     private RigidBodyIsland result;
     private long step;
 
     public Simulation() {
-        odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new MassedVectorForceCaster(new SimpleVector3f(0, -9.81f*2, 0), new SimpleVector3f())));
+        odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new MassedVectorForceCaster(new SimpleVector3f(0, -9.81f*2, 0), new SimpleVector3f()), airDrag));
         //odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new AttractionForceCaster(12, new SimpleVector3f())));
         //odeSolver = new IntegrateRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
         //odeSolver = new IntegratorOdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
