@@ -1,8 +1,9 @@
 package fr.radi3nt.physics.collision.shape.provider;
 
 import fr.radi3nt.physics.collision.shape.CollisionShape;
-import fr.radi3nt.physics.core.TransformedObject;
 import fr.radi3nt.physics.core.state.RigidBody;
+
+import java.util.Arrays;
 
 public class SetCollisionShapeProvider implements CollisionShapeProvider, IndependentCollisionShapeProvider {
 
@@ -20,5 +21,12 @@ public class SetCollisionShapeProvider implements CollisionShapeProvider, Indepe
     @Override
     public CollisionShape[] getCollisionShape() {
         return collisionShapes;
+    }
+
+    @Override
+    public String toString() {
+        return "SetCollisionShapeProvider{" +
+                "collisionShapes=" + Arrays.toString(collisionShapes) +
+                '}';
     }
 }
