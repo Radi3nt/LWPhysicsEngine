@@ -25,6 +25,11 @@ public class NoSleepingData implements SleepingData {
     }
 
     @Override
+    public boolean isAwoken() {
+        return true;
+    }
+
+    @Override
     public boolean shouldWakeUp(DynamicsData a) {
         return true;
     }

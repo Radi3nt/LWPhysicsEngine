@@ -16,7 +16,8 @@ public class PositionSleepingData implements SleepingData {
     private Vector3f lastTorque;
 
     public int stepStatic;
-    public boolean sleeping;
+    private boolean sleeping;
+    private boolean askAwake;
 
     public PositionSleepingData(float threshold, int stepRequiredToSleep) {
         this.threshold = threshold;
@@ -43,6 +44,11 @@ public class PositionSleepingData implements SleepingData {
 
     @Override
     public void step(DynamicsData data) {
+        if (askAwake) {
+            actuallyWakeUp();
+            askAwake = false;
+        }
+
         boolean staticObject = lastPos!=null && lastRot!=null && lastPos.duplicate().sub(data.getPosition()).lengthSquared()<threshold*threshold;
         if (staticObject) {
             Quaternion quat = lastRot.duplicate();
@@ -80,6 +86,10 @@ public class PositionSleepingData implements SleepingData {
 
     @Override
     public void wakeUp() {
+        askAwake = true;
+    }
+
+    private void actuallyWakeUp() {
         stepStatic=0;
         lastPos = null;
         lastRot = null;
@@ -91,6 +101,11 @@ public class PositionSleepingData implements SleepingData {
     @Override
     public boolean isSleeping() {
         return sleeping;
+    }
+
+    @Override
+    public boolean isAwoken() {
+        return !sleeping;
     }
 
     @Override

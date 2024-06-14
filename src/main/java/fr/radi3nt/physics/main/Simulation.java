@@ -175,7 +175,7 @@ public class Simulation {
 
         for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
             RigidBody rigidBody = rigidBodyIsland.getRigidBody(i);
-            if (rigidBody.getSleepingData().isSleeping() && predicate.test(rigidBody)) {
+            if (!rigidBody.getSleepingData().isAwoken() && predicate.test(rigidBody)) {
                 rigidBody.getSleepingData().wakeUp();
                 wakeRecursively(rigidBody, addedSize);
             }

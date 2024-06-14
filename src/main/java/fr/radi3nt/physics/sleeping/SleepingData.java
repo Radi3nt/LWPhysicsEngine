@@ -9,6 +9,7 @@ public interface SleepingData {
     void step(DynamicsData data);
     void wakeUp();
     boolean isSleeping();
+    boolean isAwoken();
 
     boolean shouldWakeUp(DynamicsData a);
 }

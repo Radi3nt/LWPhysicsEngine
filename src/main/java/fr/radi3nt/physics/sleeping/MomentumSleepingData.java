@@ -14,6 +14,7 @@ public class MomentumSleepingData implements SleepingData {
     private Vector3f lastTorque;
 
     public boolean sleeping;
+    public boolean askedWokeUp;
 
     public MomentumSleepingData(float threshold, int stepRequiredToSleep) {
         this.threshold = threshold;
@@ -43,6 +44,11 @@ public class MomentumSleepingData implements SleepingData {
 
     @Override
     public void step(DynamicsData data) {
+        if (askedWokeUp) {
+            actuallyWake();
+            askedWokeUp = false;
+        }
+
         boolean staticObject = shouldKeepSleeping(data);
         if (staticObject)
             stepStatic++;
@@ -54,6 +60,13 @@ public class MomentumSleepingData implements SleepingData {
         if (shouldSleep()) {
             sleep(data);
         }
+    }
+
+    private void actuallyWake() {
+        stepStatic=0;
+        lastForce = null;
+        lastTorque = null;
+        sleeping = false;
     }
 
     private void sleep(DynamicsData data) {
@@ -68,15 +81,17 @@ public class MomentumSleepingData implements SleepingData {
 
     @Override
     public void wakeUp() {
-        stepStatic=0;
-        lastForce = null;
-        lastTorque = null;
-        sleeping = false;
+        askedWokeUp = true;
     }
 
     @Override
     public boolean isSleeping() {
         return sleeping;
+    }
+
+    @Override
+    public boolean isAwoken() {
+        return askedWokeUp || !sleeping;
     }
 
     @Override
