@@ -6,10 +6,10 @@ import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 public class IndexedRigidBodyIndex implements RigidBodyIndex {
 
-    private final int islandIndex;
+    private final int bodyId;
 
-    public IndexedRigidBodyIndex(int islandIndex) {
-        this.islandIndex = islandIndex;
+    public IndexedRigidBodyIndex(int bodyId) {
+        this.bodyId = bodyId;
     }
 
     @Override
@@ -19,17 +19,26 @@ public class IndexedRigidBodyIndex implements RigidBodyIndex {
 
     @Override
     public RigidBody getRigidBody(RigidBodyIsland island) {
-        return island.getRigidBody(islandIndex);
+        return island.getRigidBodyById(bodyId);
     }
 
     @Override
-    public int getRigidBodyId(RigidBodyIsland island) {
-        return getRigidBody(island).getRigidBodyId();
+    public int getRigidBodyId() {
+        return bodyId;
     }
 
     @Override
     public IdentifiedDynamicsData getIdentifiedData(RigidBodyIsland island) {
         RigidBody rigidBody = getRigidBody(island);
+        if (rigidBody==null)
+            return null;
         return new IdentifiedDynamicsData(rigidBody.getDynamicsData(), rigidBody.getSleepingData(), rigidBody.getRigidBodyId());
+    }
+
+    @Override
+    public String toString() {
+        return "IndexedRigidBodyIndex{" +
+                "islandIndex=" + bodyId +
+                '}';
     }
 }

@@ -23,7 +23,7 @@ public class ImplicitRigidBodyIndex implements RigidBodyIndex {
     }
 
     @Override
-    public int getRigidBodyId(RigidBodyIsland island) {
+    public int getRigidBodyId() {
         return rigidBody.getRigidBodyId();
     }
 

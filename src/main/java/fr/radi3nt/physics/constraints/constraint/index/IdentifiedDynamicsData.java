@@ -15,6 +15,10 @@ public class IdentifiedDynamicsData {
         this.id = id;
     }
 
+    public boolean isStatic() {
+        return data.getBodyProperties().inverseMass==0 || sleepingData.isSleeping();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

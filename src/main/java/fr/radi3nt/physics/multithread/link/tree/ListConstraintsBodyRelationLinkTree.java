@@ -28,7 +28,7 @@ public class ListConstraintsBodyRelationLinkTree {
             RigidBodyIndex[] indices = allConstraint.getConcernedBodies();
             for (int i = 0, indicesLength = indices.length; i < indicesLength; i++) {
                 RigidBodyIndex concernedBody = indices[i];
-                if (concernedBody.getRigidBodyId(mainIsland) == rigidBody.getRigidBodyId()) {
+                if (concernedBody.getRigidBodyId() == rigidBody.getRigidBodyId()) {
                     currentBodyLocalIndex = i;
                     break;
                 }

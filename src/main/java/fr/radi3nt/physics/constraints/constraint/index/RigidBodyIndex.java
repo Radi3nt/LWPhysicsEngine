@@ -9,6 +9,6 @@ public interface RigidBodyIndex {
     DynamicsData getData(RigidBodyIsland island);
     RigidBody getRigidBody(RigidBodyIsland island);
     IdentifiedDynamicsData getIdentifiedData(RigidBodyIsland island);
-    int getRigidBodyId(RigidBodyIsland island);
+    int getRigidBodyId();
 
 }
