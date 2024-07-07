@@ -76,17 +76,16 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
         for (int i = 0; i < contactPoints.length; i++) {
             ContactPoint contactPoint = contactPoints[i];
             float relativeVel = initialRelativeVel[i];
-            if (relativeVel>=0)
+            if (relativeVel >= 0)
                 continue;
 
             Vector3f relativeVelVec = initialRelativeVec[i];
 
             float epsilon = a.getBodyProperties().bouncingFactor * b.getBodyProperties().bouncingFactor;
-            if (epsilon<=0)
+            if (epsilon <= 0)
                 continue;
 
-            float uk = a.getBodyProperties().kineticFrictionFactor * b.getBodyProperties().kineticFrictionFactor;
-            float us = a.getBodyProperties().staticFrictionFactor * b.getBodyProperties().staticFrictionFactor;
+
             Vector3f normal = contactPoint.normal;
 
             Vector3f ra = contactPoint.rA;
@@ -96,19 +95,8 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             float numerator = -((epsilon) * impulseForce);
 
 
-            float frictionFactor = uk;
-
-            Vector3f t = normal.duplicate().cross(normal.duplicate().cross(relativeVelVec.duplicate()));
-            float currentNormalForce = abs(relativeVelVec.dot(normal));
-            float currentTangentForce = abs(relativeVelVec.dot(t));
-            float forceRequiredToSlide = us*abs(impulseForce);
-            if (currentTangentForce<forceRequiredToSlide)
-                frictionFactor = us*currentTangentForce;
-
-            if(currentNormalForce>0.99f)
-                frictionFactor = 0;
-
-            Vector3f dir = normal.duplicate().add(t.mul(frictionFactor));
+            Vector3f frictionVec = getFrictionVec(a, b, normal, relativeVelVec, impulseForce);
+            Vector3f dir = normal.duplicate().add(frictionVec);
 
             float j = numerator / staticValues[i];
             Vector3f fullImpulse = dir.duplicate().mul(j);
@@ -119,6 +107,24 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             a.addLinearImpulse(fullImpulse.duplicate().negate());
             a.addAngularImpulse(ra.duplicate().cross(fullImpulse.duplicate().negate()));
         }
+    }
+
+    private static Vector3f getFrictionVec(DynamicsData a, DynamicsData b, Vector3f normal, Vector3f relativeVelVec, float impulseForce) {
+        float uk = a.getBodyProperties().kineticFrictionFactor * b.getBodyProperties().kineticFrictionFactor;
+        float us = a.getBodyProperties().staticFrictionFactor * b.getBodyProperties().staticFrictionFactor;
+        float frictionFactor = uk;
+
+        Vector3f t = normal.duplicate().cross(normal.duplicate().cross(relativeVelVec.duplicate()));
+        float currentNormalForce = abs(relativeVelVec.dot(normal));
+        float currentTangentForce = abs(relativeVelVec.dot(t));
+        float forceRequiredToSlide = us * abs(impulseForce);
+        if (currentTangentForce < forceRequiredToSlide)
+            frictionFactor = us * currentTangentForce;
+
+        if (currentNormalForce > 0.99f)
+            frictionFactor = 0;
+
+        return t.mul(frictionFactor);
     }
 
     private void removeOverlap(DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB, ContactPoint[] contactPoints, float[] staticValues) {
@@ -137,8 +143,6 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
 
                 atLeastOneContactCollided = true;
 
-                float uk = a.getBodyProperties().kineticFrictionFactor * b.getBodyProperties().kineticFrictionFactor;
-                float us = a.getBodyProperties().staticFrictionFactor * b.getBodyProperties().staticFrictionFactor;
                 Vector3f normal = contactPoint.normal;
 
                 Vector3f ra = contactPoint.rA;
@@ -147,22 +151,10 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
                 float impulseForce = contactPoint.getRelativeVelocityAlongNormal();
                 float numerator = -(impulseForce);
 
-
-                float frictionFactor = uk;
-
-                Vector3f t = normal.duplicate().cross(normal.duplicate().cross(contactPoint.getRelativeVelocityVec().duplicate()));
-                float currentNormalForce = abs(contactPoint.getRelativeVelocityVec().dot(normal));
-                float currentTangentForce = abs(contactPoint.getRelativeVelocityVec().dot(t));
-                float forceRequiredToSlide = us*abs(impulseForce);
-                if (currentTangentForce<forceRequiredToSlide)
-                    frictionFactor = us*currentTangentForce;
-
-                if(currentNormalForce>0.99f)
-                    frictionFactor = 0;
-                Vector3f dir = normal.duplicate().add(t.mul(frictionFactor));
+                Vector3f dir = normal.duplicate().add(getFrictionVec(a, b, normal, contactPoint.getRelativeVelocityVec(), impulseForce));
 
                 float j = numerator / staticValues[i];
-                Vector3f fullImpulse = dir.duplicate().mul(j /iterationCount);
+                Vector3f fullImpulse = dir.duplicate().mul(j / iterationCount);
 
                 b.addLinearImpulse(fullImpulse);
                 b.addAngularImpulse(rb.duplicate().cross(fullImpulse.duplicate()));
