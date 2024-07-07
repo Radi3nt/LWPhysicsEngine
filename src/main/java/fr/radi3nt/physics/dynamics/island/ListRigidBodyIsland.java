@@ -39,6 +39,15 @@ public class ListRigidBodyIsland implements RigidBodyIsland, EditableRigidBodyIs
     }
 
     @Override
+    public RigidBody getRigidBodyById(int id) {
+        for (RigidBody rigidBody : rigidBodies) {
+            if (rigidBody.getRigidBodyId()==id)
+                return rigidBody;
+        }
+        return null;
+    }
+
+    @Override
     public int getSize() {
         return rigidBodies.size();
     }

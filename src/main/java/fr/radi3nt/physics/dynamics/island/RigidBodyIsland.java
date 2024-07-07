@@ -7,5 +7,6 @@ public interface RigidBodyIsland {
     void copyStates(RigidBodyIsland island);
 
     RigidBody getRigidBody(int index);
+    RigidBody getRigidBodyById(int id);
     int getSize();
 }
