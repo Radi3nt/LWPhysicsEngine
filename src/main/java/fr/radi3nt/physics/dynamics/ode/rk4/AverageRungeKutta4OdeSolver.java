@@ -76,7 +76,7 @@ public class AverageRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
             Vector3f torque = averageForcesAndTorque[i * 2+1];
             rigidBody.getSleepingData().ode(force, torque);
 
-            if (rigidBody.getSleepingData().isSleeping()) {
+            if (rigidBody.isStatic()) {
                 resultBody = new RigidBody(rigidBody.getRigidBodyId(), DynamicsData.from(rigidBody.getDynamicsData()), rigidBody.getCollisionData(), rigidBody.getSleepingData());
                 sleeping++;
             } else {

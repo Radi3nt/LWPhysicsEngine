@@ -45,7 +45,7 @@ public class RigidBody implements TransformedObject {
         return dynamicsData.getPosition();
     }
 
-    public boolean canIgnoreCollisionDetection() {
+    public boolean isStatic() {
         return sleepingData.isSleeping() || dynamicsData.getBodyProperties().inverseMass==0;
     }
 
