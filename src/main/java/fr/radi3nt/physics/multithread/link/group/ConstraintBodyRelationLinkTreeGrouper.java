@@ -23,7 +23,7 @@ public class ConstraintBodyRelationLinkTreeGrouper implements RelationLinkTreeGr
         List<RigidBody> remainingRigidBodies = new ArrayList<>(Arrays.asList(bodies));
         remainingRigidBodies.removeIf(remainingRigidBody -> remainingRigidBody.getDynamicsData().getBodyProperties().inverseMass==0 || remainingRigidBody.getSleepingData().isSleeping());
 
-        List<Constraint> remainingConstraints = constraintList.getConstraints();
+        List<Constraint> remainingConstraints = new ArrayList<>(constraintList.getConstraints());
         Collection<RigidBodyGroup> groups = new ArrayList<>();
 
         RigidBodyGroup group = new RigidBodyGroup();

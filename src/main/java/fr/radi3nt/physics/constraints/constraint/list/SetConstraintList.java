@@ -3,6 +3,7 @@ package fr.radi3nt.physics.constraints.constraint.list;
 import fr.radi3nt.physics.constraints.constraint.Constraint;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SetConstraintList implements ConstraintList {
@@ -29,7 +30,7 @@ public class SetConstraintList implements ConstraintList {
 
     @Override
     public List<Constraint> getConstraints() {
-        return permanentConstraints;
+        return Collections.unmodifiableList(permanentConstraints);
     }
 
     @Override
