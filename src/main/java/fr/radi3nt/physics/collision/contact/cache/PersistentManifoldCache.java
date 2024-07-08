@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface PersistentManifoldCache {
 
-    Optional<PersistentManifold> getCachedManifold(GeneratedContactPair contactPair);
+    PersistentManifold getCachedManifold(GeneratedContactPair contactPair);
     PersistentManifold newManifold(GeneratedContactPair contactPair);
     void releaseManifold(GeneratedContactPair pair);
 

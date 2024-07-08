@@ -11,25 +11,18 @@ public class HashPersistentManifoldCache implements PersistentManifoldCache {
     private static final int RELEVANT_STEP_DISCARD = 60;
     private final Map<ContactKeyPair, PersistentManifold> persistentManifoldMap = new HashMap<>();
 
-    private long currentStep;
-
     @Override
-    public Optional<PersistentManifold> getCachedManifold(GeneratedContactPair contactPair) {
-        PersistentManifold manifold = persistentManifoldMap.get(contactPair.toPair());
-        if (manifold!=null)
-            manifold.setRelevant(currentStep);
-        return Optional.ofNullable(manifold);
+    public PersistentManifold getCachedManifold(GeneratedContactPair contactPair) {
+        return persistentManifoldMap.get(contactPair.toPair());
     }
 
     @Override
     public PersistentManifold newManifold(GeneratedContactPair contactPair) {
-        PersistentManifold persistentManifold = persistentManifoldMap.computeIfAbsent(contactPair.toPair(), keyPair -> createManifold(contactPair));
-        persistentManifold.setRelevant(currentStep);
-        return persistentManifold;
+        return persistentManifoldMap.computeIfAbsent(contactPair.toPair(), keyPair -> createManifold(contactPair));
     }
 
     private PersistentManifold createManifold(GeneratedContactPair contactPair) {
-        PersistentManifold persistentManifold = new PersistentManifold(contactPair.toPair());
+        PersistentManifold persistentManifold = new PersistentManifold(contactPair);
         contactPair.objectA.getCollisionData().getCurrentCollisions().add(persistentManifold);
         contactPair.objectB.getCollisionData().getCurrentCollisions().add(persistentManifold);
         return persistentManifold;
@@ -56,10 +49,6 @@ public class HashPersistentManifoldCache implements PersistentManifoldCache {
                 iterator.remove();
                 }
         }
-    }
-
-    public void setCurrentStep(long currentStep) {
-        this.currentStep = currentStep;
     }
 
     public Collection<PersistentManifold> getManifolds() {

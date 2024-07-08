@@ -1,7 +1,7 @@
 package fr.radi3nt.physics.collision.detection.broad.aabb.overlap;
 
-import fr.radi3nt.maths.aabb.AABB;
-import fr.radi3nt.maths.aabb.AxisMapping;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.AABB;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.mapping.AxisMapping;
 
 public class OverlapZTest implements OverlapTest {
 

@@ -1,7 +1,7 @@
 package fr.radi3nt.physics.collision.contact.cache;
 
 import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
-import fr.radi3nt.physics.collision.detection.gen.generator.PairGenerator;
+import fr.radi3nt.physics.collision.detection.generators.generator.PairGenerator;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 

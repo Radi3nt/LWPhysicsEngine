@@ -9,7 +9,6 @@ import fr.radi3nt.physics.collision.detection.narrow.dispacher.CollisionDispatch
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 
 public class CollisionDetection {
 
@@ -23,13 +22,15 @@ public class CollisionDetection {
         this.collisionDispatcher = collisionDispatcher;
     }
 
-    public Collection<PersistentManifold> process(float dt) {
+    public Collection<PersistentManifold> process(long currentStep) {
         ContactPairCache cache = cacheProvider.newFilledCache();
 
         Collection<PersistentManifold> collidingManifolds = new ArrayList<>();
         for (GeneratedContactPair contactPair : cache) {
-            Optional<PersistentManifold> manifold = collisionDispatcher.dispatch(manifoldCache, contactPair);
-            manifold.ifPresent(collidingManifolds::add);
+            PersistentManifold manifold = collisionDispatcher.dispatch(manifoldCache, contactPair, currentStep);
+            if (manifold==null)
+                continue;
+            collidingManifolds.add(manifold);
         }
 
         return collidingManifolds;

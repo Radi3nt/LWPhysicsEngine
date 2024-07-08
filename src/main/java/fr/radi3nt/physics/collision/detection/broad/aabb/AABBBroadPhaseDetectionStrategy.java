@@ -1,15 +1,16 @@
 package fr.radi3nt.physics.collision.detection.broad.aabb;
 
-import fr.radi3nt.maths.aabb.AABB;
-import fr.radi3nt.maths.aabb.AxisMapping;
-import fr.radi3nt.maths.aabb.SetAABB;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.AABB;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.mapping.AxisMapping;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.SetAABB;
 import fr.radi3nt.physics.collision.detection.broad.BroadPhaseDetectionStrategy;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapTest;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapXTest;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapYTest;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapZTest;
-import fr.radi3nt.physics.collision.shape.pre.PreCollisionPair;
-import fr.radi3nt.physics.collision.shape.pre.PreCollisionShape;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionPair;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
+import fr.radi3nt.physics.collision.detection.narrow.processed.ProcessedShapeProvider;
 import fr.radi3nt.physics.core.TransformedObject;
 
 public class AABBBroadPhaseDetectionStrategy implements BroadPhaseDetectionStrategy {
@@ -33,14 +34,9 @@ public class AABBBroadPhaseDetectionStrategy implements BroadPhaseDetectionStrat
     }
 
     private boolean canSkip(PreCollisionShape shapeA, PreCollisionShape shapeB, TransformedObject bodyA, TransformedObject bodyB) {
-        CachingAABB aabbA = shapeA.getAABB();
-        CachingAABB aabbB = shapeB.getAABB();
+        aabbA.copy(shapeA.getBoundingBox(bodyA));
+        aabbB.copy(shapeB.getBoundingBox(bodyB));
 
-        aabbA.toSetAABB(this.aabbA, bodyA.getPosition(), bodyA.getRotation());
-        aabbB.toSetAABB(this.aabbB, bodyB.getPosition(), bodyB.getRotation());
-
-        //aabbA.prepare(bodyA.getPosition(), bodyA.getRotation());
-        //aabbB.prepare(bodyB.getPosition(), bodyB.getRotation());
         boolean canSkip = false;
         for (OverlapTest overlapTest : overlapTests) {
             if (overlapTest.noOverlap(this.aabbA, this.aabbB)) {
@@ -48,9 +44,6 @@ public class AABBBroadPhaseDetectionStrategy implements BroadPhaseDetectionStrat
                 break;
             }
         }
-
-        //aabbA.release();
-        //aabbB.release();
 
         return canSkip;
     }

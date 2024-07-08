@@ -1,6 +1,7 @@
 package fr.radi3nt.physics.collision.contact;
 
-import fr.radi3nt.physics.collision.shape.CollisionShape;
+import fr.radi3nt.physics.collision.shape.CollisionShapeProvider;
+import fr.radi3nt.physics.collision.shape.shapes.CollisionShape;
 
 import java.util.Objects;
 

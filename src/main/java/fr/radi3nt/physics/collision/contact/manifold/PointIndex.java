@@ -1,5 +1,7 @@
 package fr.radi3nt.physics.collision.contact.manifold;
 
+import fr.radi3nt.physics.collision.contact.manifold.manifolds.clip.ClipIndex;
+
 import java.util.Objects;
 
 public class PointIndex {

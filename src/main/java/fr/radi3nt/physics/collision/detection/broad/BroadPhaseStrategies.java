@@ -1,6 +1,6 @@
 package fr.radi3nt.physics.collision.detection.broad;
 
-import fr.radi3nt.physics.collision.shape.pre.PreCollisionPair;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionPair;
 
 import java.util.function.Predicate;
 
@@ -15,8 +15,9 @@ public class BroadPhaseStrategies implements Predicate<PreCollisionPair> {
     @Override
     public boolean test(PreCollisionPair pair) {
         for (BroadPhaseDetectionStrategy strategy : strategies) {
-            if (strategy.canSkip(pair))
+            if (strategy.canSkip(pair)) {
                 return true;
+            }
         }
         return false;
     }

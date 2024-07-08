@@ -33,7 +33,7 @@ public class SimpleNoPenetrationConstraintProvider implements NoPenetrationConst
     public void addConstraint(Collection<Constraint> constraints, PersistentManifold persistentManifold, ContactPoint contactPoint) {
         RigidBodyIndex indexA = new ImplicitRigidBodyIndex(persistentManifold.getObjectA());
         RigidBodyIndex indexB = new ImplicitRigidBodyIndex(persistentManifold.getObjectB());
-        constraints.add(new NoPenetrationConstraint(driftParameters, contactPoint.normal, contactPoint.rA, contactPoint.rB, indexA, indexB, new ArrayCachingModuleProvider(new NoPenetrationCachingConstraintModule(contactPoint.manifoldPoint))));
+        constraints.add(new NoPenetrationConstraint(driftParameters, contactPoint.normal, contactPoint.rA, contactPoint.rB, indexA, indexB, new ArrayCachingModuleProvider(new NoPenetrationCachingConstraintModule(contactPoint.manifoldPoint.data))));
 
         Vector3f randomVec = chooseAxis(contactPoint.normal);
         if (randomVec==null)
@@ -41,9 +41,9 @@ public class SimpleNoPenetrationConstraintProvider implements NoPenetrationConst
         Vector3f tangent = contactPoint.normal.duplicate().cross(randomVec).normalize();
         Vector3f otherTangent = contactPoint.normal.duplicate().cross(tangent);
         float uk = contactPoint.a.getBodyProperties().kineticFrictionFactor*contactPoint.b.getBodyProperties().kineticFrictionFactor;
-        float relativeVel = contactPoint.manifoldPoint.cachedContactLambda;
+        float relativeVel = contactPoint.manifoldPoint.data.cachedContactLambda;
         if (relativeVel!=0 && uk!=0)
-            constraints.add(new FrictionConstraint(tangent, otherTangent, relativeVel, uk, contactPoint.rA, contactPoint.rB, indexA, indexB, new ArrayCachingModuleProvider(new FrictionCachingConstraintModule(contactPoint.manifoldPoint, 0), new FrictionCachingConstraintModule(contactPoint.manifoldPoint, 1))));
+            constraints.add(new FrictionConstraint(tangent, otherTangent, relativeVel, uk, contactPoint.rA, contactPoint.rB, indexA, indexB, new ArrayCachingModuleProvider(new FrictionCachingConstraintModule(contactPoint.manifoldPoint.data, 0), new FrictionCachingConstraintModule(contactPoint.manifoldPoint.data, 1))));
     }
 
     private Vector3f chooseAxis(Vector3f contactNormal) {

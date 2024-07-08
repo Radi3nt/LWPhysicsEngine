@@ -6,20 +6,34 @@ import fr.radi3nt.physics.collision.contact.cache.HashPersistentManifoldCache;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.detection.CollisionDetection;
 import fr.radi3nt.physics.collision.detection.broad.BroadPhaseStrategies;
-import fr.radi3nt.physics.collision.detection.broad.SphereBroadPhaseDetectionStrategy;
+import fr.radi3nt.physics.collision.detection.broad.sphere.SphereBroadPhaseDetectionStrategy;
 import fr.radi3nt.physics.collision.detection.broad.aabb.AABBBroadPhaseDetectionStrategy;
-import fr.radi3nt.physics.collision.detection.gen.DimensionalContactPairCacheProvider;
-import fr.radi3nt.physics.collision.detection.gen.generator.BroadphaseOrderingPairGenerator;
-import fr.radi3nt.physics.collision.detection.gen.generator.PairGenerator;
-import fr.radi3nt.physics.collision.detection.gen.provider.AABBOneDimensionProvider;
-import fr.radi3nt.physics.collision.detection.narrow.dispacher.SetCollisionDispatcher;
-import fr.radi3nt.physics.collision.detection.narrow.sat.SATNarrowPhaseDetectionAlgorithm;
+import fr.radi3nt.physics.collision.detection.generators.DimensionalContactPairCacheProvider;
+import fr.radi3nt.physics.collision.detection.generators.generator.BroadphaseOrderingPairGenerator;
+import fr.radi3nt.physics.collision.detection.generators.generator.PairGenerator;
+import fr.radi3nt.physics.collision.detection.generators.provider.AABBOneDimensionProvider;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.shapes.provider.GjkSphereShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.dispacher.SupportedCollisionDispatcher;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.GJKNarrowPhaseDetectionAlgorithm;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.shapes.GjkProcessedShape;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.shapes.provider.GjkBoxShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.shapes.provider.GjkCapsuleShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.shapes.provider.GjkTriangleShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.processed.CachingProcessedShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.processed.MapProcessedShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.processed.ProcessedShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.SATNarrowPhaseDetectionAlgorithm;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.provider.SatBoxProcessedShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.provider.SatSquareProcessedShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.provider.SatTriangleProcessedShapeProvider;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.SatProcessedShape;
 import fr.radi3nt.physics.collision.detection.predicate.broadphase.BroadPhaseDetectionStrategyPredicate;
 import fr.radi3nt.physics.collision.response.CompositionCollisionContactSolver;
 import fr.radi3nt.physics.collision.response.constrained.SimpleNoPenetrationConstraintProvider;
 import fr.radi3nt.physics.collision.response.constrained.SimultaneousImpulseRestingContactSolver;
 import fr.radi3nt.physics.collision.response.sequential.SequentialImpulseCollisionContactSolver;
-import fr.radi3nt.physics.collision.shape.pre.ParentAABBPreCollisionShape;
+import fr.radi3nt.physics.collision.detection.broad.aabb.shapes.ParentAABBPreCollisionShape;
+import fr.radi3nt.physics.collision.shape.shapes.*;
 import fr.radi3nt.physics.constraints.constraint.DriftParameters;
 import fr.radi3nt.physics.constraints.constraint.list.InstantConstraintList;
 import fr.radi3nt.physics.constraints.constraint.list.SetConstraintList;
@@ -34,6 +48,7 @@ import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.force.caster.CompositeForceCaster;
 import fr.radi3nt.physics.dynamics.force.caster.FluidDragForceCaster;
 import fr.radi3nt.physics.dynamics.force.caster.MassedVectorForceCaster;
+import fr.radi3nt.physics.dynamics.force.caster.TorqueDampForceCaster;
 import fr.radi3nt.physics.dynamics.island.ArrayListRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.ListRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
@@ -47,10 +62,14 @@ import fr.radi3nt.physics.splitter.IslandSplitter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class Simulation {
+
+    private static final float DEFAULT_ADDED_SIZE_EPSILON = 0f;
 
     private final ListRigidBodyIsland rigidBodyIsland = new ArrayListRigidBodyIsland();
     private final CollisionDetection collisionDetection;
@@ -74,15 +93,19 @@ public class Simulation {
 
         @Override
         public float getDragCoefficient(RigidBody body) {
-            return 1.15f;
+            return 0.115f;
         }
     });
+    public final TorqueDampForceCaster torqueDrag = new TorqueDampForceCaster(0.001f);
+    private final Collection<CachingProcessedShapeProvider<?>> cachingProviders = new ArrayList<>();
+
+    public final ProcessedShapeProvider<SatProcessedShape> satShapeProvider;
 
     private RigidBodyIsland result;
     private long step;
 
     public Simulation() {
-        odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new MassedVectorForceCaster(new SimpleVector3f(0, -9.81f*2, 0), new SimpleVector3f()), airDrag));
+        odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new MassedVectorForceCaster(new SimpleVector3f(0, -9.81f*2, 0), new SimpleVector3f()), airDrag, torqueDrag));
         //odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new AttractionForceCaster(12, new SimpleVector3f())));
         //odeSolver = new IntegrateRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
         //odeSolver = new IntegratorOdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
@@ -98,7 +121,25 @@ public class Simulation {
                 new SimpleNoPenetrationConstraintProvider(new DriftParameters(0.05f)),
                 instantConstraintList);
         collisionContactSolver = new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(30), solver);
-        collisionDetection = new CollisionDetection(aabbCacheProvider, manifoldCache, new SetCollisionDispatcher(new SATNarrowPhaseDetectionAlgorithm()));
+
+        Map<Class<? extends CollisionShape>, ProcessedShapeProvider<? extends SatProcessedShape>> satProviders = new HashMap<>();
+        satProviders.put(BoxShape.class, SatBoxProcessedShapeProvider.INSTANCE);
+        satProviders.put(SquareShape.class, SatSquareProcessedShapeProvider.INSTANCE);
+        satProviders.put(TriangleShape.class, SatTriangleProcessedShapeProvider.INSTANCE);
+
+        satShapeProvider = new MapProcessedShapeProvider<>(satProviders);
+        CachingProcessedShapeProvider<SatProcessedShape> satCachingProvider = new CachingProcessedShapeProvider<>(satShapeProvider);
+        cachingProviders.add(satCachingProvider);
+
+        Map<Class<? extends CollisionShape>, ProcessedShapeProvider<? extends GjkProcessedShape>> gjkProviders = new HashMap<>();
+        gjkProviders.put(BoxShape.class, GjkBoxShapeProvider.INSTANCE);
+        gjkProviders.put(CapsuleShape.class, GjkCapsuleShapeProvider.INSTANCE);
+        gjkProviders.put(TriangleShape.class, GjkTriangleShapeProvider.INSTANCE);
+        gjkProviders.put(SphereShape.class, GjkSphereShapeProvider.INSTANCE);
+
+        collisionDetection = new CollisionDetection(aabbCacheProvider, manifoldCache, new SupportedCollisionDispatcher(
+                new SATNarrowPhaseDetectionAlgorithm(satCachingProvider),
+            new GJKNarrowPhaseDetectionAlgorithm(new MapProcessedShapeProvider<>(gjkProviders))
         ));
         islandSplitter = new GroupIslandSplitter(new ConstraintBodyIslandRelationGrouper(instantConstraintList), false);
     }
@@ -108,10 +149,8 @@ public class Simulation {
             runnable.run();
         }
 
-        manifoldCache.setCurrentStep(step);
-
         result = odeSolver.integrate(rigidBodyIsland, dt);
-        Collection<PersistentManifold> process = collisionDetection.process(dt);
+        Collection<PersistentManifold> process = collisionDetection.process(step);
 
         for (Runnable runnable : collisionSimulationUpdate) {
             runnable.run();
@@ -134,8 +173,6 @@ public class Simulation {
             impulseConstraintSolver.solve(new ListConstraintFiller(new SetConstraintList(island.constraints)), island.island, dt);
         }
 
-        instantConstraintList.done();
-
         int sleeping = 0;
         for (int i = 0; i < result.getSize(); i++) {
             RigidBody rigidBody = result.getRigidBody(i);
@@ -145,12 +182,22 @@ public class Simulation {
         }
         //System.out.println("Sleeping " + sleeping + "/" + result.getSize());
         rigidBodyIsland.copyStates(result);
+        for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
+            RigidBody rigidBody = rigidBodyIsland.getRigidBody(i);
+            rigidBody.getCollisionData().relevance(step);
+        }
 
         manifoldCache.cleanup(step);
 
         for (Runnable runnable : afterSimulationUpdate) {
             runnable.run();
         }
+
+        for (CachingProcessedShapeProvider<?> cachingProvider : cachingProviders) {
+            cachingProvider.clearCache();
+        }
+
+        instantConstraintList.done();
 
         step++;
     }
@@ -181,6 +228,10 @@ public class Simulation {
                 wakeRecursively(rigidBody, addedSize);
             }
         }
+    }
+
+    public void wakeRecursively(RigidBody current) {
+        wakeRecursively(current, DEFAULT_ADDED_SIZE_EPSILON);
     }
 
     public long getStep() {

@@ -9,12 +9,15 @@ import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class PersistentManifold {
 
     private static final int MAX_CONTACT_POINTS = 4;
-    private static final float CONTACT_BREAK_THRESHOLD = 1e-2f;
+    private static final float CONTACT_BREAK_NORMAL_THRESHOLD = 3e-2f;
+    private static final float CONTACT_BREAK_ORTHOGONAL_THRESHOLD = 3e-1f;
+
 
     private final List<ManifoldPoint> manifoldPoints = new ArrayList<>();
     private final ContactKeyPair keyPair;
@@ -22,11 +25,12 @@ public class PersistentManifold {
 
     private GeneratedContactPair currentPair;
 
-    public PersistentManifold(ContactKeyPair keyPair) {
-        this.keyPair = keyPair;
+    public PersistentManifold(GeneratedContactPair keyPair) {
+        this.keyPair = keyPair.toPair();
+        currentPair = keyPair;
     }
 
-    public void refresh(RigidBody a, RigidBody b) {
+    public void refresh(RigidBody a, RigidBody b, long currentStep) {
         currentPair = new GeneratedContactPair(a, keyPair.shapeA, b, keyPair.shapeB);
 
         for (int i = 0, manifoldPointsSize = manifoldPoints.size(); i < manifoldPointsSize; i++) {
@@ -39,24 +43,50 @@ public class PersistentManifold {
                 manifoldPointsSize--;
             }
         }
+
+        setRelevant(currentStep);
     }
 
     private static boolean shouldRemove(ManifoldPoint manifoldPoint) {
-        return breaksSignedThreshold(manifoldPoint) || (manifoldPoint.orthogonalDistanceExceedThreshold(CONTACT_BREAK_THRESHOLD));
+        return breaksSignedThreshold(manifoldPoint) || (manifoldPoint.orthogonalDistanceExceedThreshold(CONTACT_BREAK_ORTHOGONAL_THRESHOLD));
     }
 
     private static boolean breaksSignedThreshold(ManifoldPoint manifoldPoint) {
-        return manifoldPoint.exceedSignedProjectedDistanceThreshold(CONTACT_BREAK_THRESHOLD);
+        return manifoldPoint.exceedSignedProjectedDistanceThreshold(CONTACT_BREAK_NORMAL_THRESHOLD);
     }
 
     public ContactPoint[] getContactPoints(DynamicsData a, DynamicsData b) {
         List<ContactPoint> contactPoints = new ArrayList<>();
         for (ManifoldPoint manifoldPoint : manifoldPoints) {
-            contactPoints.add(new ContactPoint(manifoldPoint, manifoldPoint.normalFromAToB.duplicate(), manifoldPoint.getDirectionFromCenterOfMassToPointA(a), manifoldPoint.getDirectionFromCenterOfMassToPointB(b), a, b));
+            contactPoints.add(manifoldPoint.toContactPoint(a, b));
         }
         return contactPoints.toArray(new ContactPoint[0]);
     }
 
+    public void replaceManifoldPoints(Collection<ManifoldPoint> points) {
+        points.removeIf(this::replacePoint);
+    }
+
+    private boolean replacePoint(ManifoldPoint point) {
+        point.refresh(getObjectA(), getObjectB());
+
+        float mostReplacing = 0;
+        int mostReplacingIndex = -1;
+        for (int i = 0; i < manifoldPoints.size(); i++) {
+            ManifoldPoint manifoldPoint = manifoldPoints.get(i);
+            float replaceFactor = point.replaces(manifoldPoint);
+            if (replaceFactor>mostReplacing) {
+                mostReplacing = replaceFactor;
+                mostReplacingIndex = i;
+            }
+        }
+        if (mostReplacingIndex!=-1) {
+            ManifoldPoint set = manifoldPoints.set(mostReplacingIndex, point);
+            point.data = set.data;
+            return true;
+        }
+        return false;
+    }
 
     public void addManifoldPoints(Collection<ManifoldPoint> points) {
         for (ManifoldPoint point : points) {
@@ -67,9 +97,12 @@ public class PersistentManifold {
     public void addManifoldPoint(ManifoldPoint point) {
         point.refresh(getObjectA(), getObjectB());
 
-        if (breaksSignedThreshold(point)) {
+        if (shouldRemove(point)) {
             return;
         }
+
+        if (replacePoint(point))
+            return;
 
         if (manifoldPoints.size()<MAX_CONTACT_POINTS) {
             manifoldPoints.add(point);
@@ -83,17 +116,22 @@ public class PersistentManifold {
     }
 
     private int findReplacingIndex(ManifoldPoint point) {
-        int shallowestIndex = findShallowestIndex(point);
+        int deepestIndex = findDeepestIndex(point);
 
         float maxCurrentArea = 0;
         int maxIndex = -1;
 
+        boolean hasDeepest = deepestIndex!=-1;
+
         for (int currentIndex = 0; currentIndex < manifoldPoints.size(); currentIndex++) {
-            if (currentIndex==shallowestIndex) {
+            if (currentIndex==deepestIndex) {
                 continue;
             }
 
-            float currentArea = calc3PointsAreaSquared(point.localSpaceAPoint, manifoldPoints.get(currentIndex%(manifoldPoints.size()-1)).localSpaceAPoint, manifoldPoints.get((currentIndex+1)%(manifoldPoints.size()-1)).localSpaceAPoint);
+            int firstPointIndex = hasDeepest ? deepestIndex : currentIndex;
+            int secondPointIndex = (hasDeepest ? currentIndex : (currentIndex+1))%manifoldPoints.size();
+
+            float currentArea = calc3PointsAreaSquared(point.localSpaceAPoint, manifoldPoints.get(firstPointIndex).localSpaceAPoint, manifoldPoints.get(secondPointIndex).localSpaceAPoint);
             if (currentArea > maxCurrentArea) {
                 maxCurrentArea = currentArea;
                 maxIndex = currentIndex;
@@ -103,7 +141,7 @@ public class PersistentManifold {
         return maxIndex;
     }
 
-    private int findShallowestIndex(ManifoldPoint point) {
+    private int findDeepestIndex(ManifoldPoint point) {
         float maxPenetration = point.projectedDistance;
         int replacingIndex = -1;
         for (int i = 0, manifoldPointsSize = manifoldPoints.size(); i < manifoldPointsSize; i++) {
@@ -115,7 +153,6 @@ public class PersistentManifold {
         }
         return replacingIndex;
     }
-
 
     private float calc3PointsAreaSquared(Vector3f point1, Vector3f point2, Vector3f point3) {
         Vector3f a0 = point1.duplicate().sub(point2);
@@ -153,8 +190,7 @@ public class PersistentManifold {
         return step-this.relevantStep<=stepThreshold;
     }
 
-    public PersistentManifold setRelevant(long currentStep) {
+    private void setRelevant(long currentStep) {
         this.relevantStep = currentStep;
-        return this;
     }
 }

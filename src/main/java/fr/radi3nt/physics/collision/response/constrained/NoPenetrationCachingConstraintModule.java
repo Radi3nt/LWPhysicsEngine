@@ -1,23 +1,23 @@
 package fr.radi3nt.physics.collision.response.constrained;
 
-import fr.radi3nt.physics.collision.contact.manifold.ManifoldPoint;
+import fr.radi3nt.physics.collision.contact.manifold.ManifoldPointData;
 import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule;
 
 public class NoPenetrationCachingConstraintModule implements CachingConstraintModule {
 
-    private final ManifoldPoint manifoldPoint;
+    private final ManifoldPointData data;
 
-    public NoPenetrationCachingConstraintModule(ManifoldPoint manifoldPoint) {
-        this.manifoldPoint = manifoldPoint;
+    public NoPenetrationCachingConstraintModule(ManifoldPointData data) {
+        this.data = data;
     }
 
     @Override
     public float getCachedValue() {
-        return manifoldPoint.cachedContactLambda;
+        return data.cachedContactLambda;
     }
 
     @Override
     public void setCacheValue(float value) {
-        manifoldPoint.cachedContactLambda = value;
+        data.cachedContactLambda = value;
     }
 }

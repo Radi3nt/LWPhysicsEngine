@@ -3,8 +3,8 @@ package fr.radi3nt.physics.collision.detection.predicate.broadphase;
 import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.collision.detection.broad.BroadPhaseDetectionStrategy;
-import fr.radi3nt.physics.collision.shape.pre.PreCollisionPair;
-import fr.radi3nt.physics.collision.shape.pre.PreCollisionShape;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionPair;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
 import fr.radi3nt.physics.core.TransformedObject;
 import fr.radi3nt.physics.core.state.RigidBody;
 

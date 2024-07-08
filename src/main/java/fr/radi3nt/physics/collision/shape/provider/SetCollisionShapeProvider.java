@@ -1,32 +1,31 @@
 package fr.radi3nt.physics.collision.shape.provider;
 
-import fr.radi3nt.physics.collision.shape.CollisionShape;
+import fr.radi3nt.physics.collision.shape.CollisionShapeProvider;
+import fr.radi3nt.physics.collision.shape.DuoCollisionShape;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
 import fr.radi3nt.physics.core.state.RigidBody;
 
-import java.util.Arrays;
+public class SetCollisionShapeProvider implements CollisionShapeProvider {
 
-public class SetCollisionShapeProvider implements CollisionShapeProvider, IndependentCollisionShapeProvider {
+    private final DuoCollisionShape[] collisionShapes;
+    private final PreCollisionShape preCollisionShape;
 
-    private final CollisionShape[] collisionShapes;
-
-    public SetCollisionShapeProvider(CollisionShape... collisionShapes) {
+    public SetCollisionShapeProvider(PreCollisionShape preCollisionShape, DuoCollisionShape... collisionShapes) {
+        this.preCollisionShape = preCollisionShape;
         this.collisionShapes = collisionShapes;
     }
 
     @Override
-    public CollisionShape[] getCollisionShape(RigidBody other) {
+    public DuoCollisionShape[] getCollisionShapes(RigidBody other) {
+        return collisionShapes;
+    }
+
+    public DuoCollisionShape[] getCollisionShapes() {
         return collisionShapes;
     }
 
     @Override
-    public CollisionShape[] getCollisionShape() {
-        return collisionShapes;
-    }
-
-    @Override
-    public String toString() {
-        return "SetCollisionShapeProvider{" +
-                "collisionShapes=" + Arrays.toString(collisionShapes) +
-                '}';
+    public PreCollisionShape getPreCollisionShape() {
+        return preCollisionShape;
     }
 }
