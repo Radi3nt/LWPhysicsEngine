@@ -25,17 +25,37 @@ public class FixedPositionConstraint implements Constraint {
     private final DriftParameters driftParameters;
     private final CachingModuleProvider cachingProvider;
 
-    public FixedPositionConstraint(RigidBodyIndex rigidBodyId, Vector3f worldSpaceAnchor, Vector3f localSpaceAnchor, DriftParameters driftParameters, CachingModuleProvider cachingProvider) {
+    private float max;
+    private float min;
+
+    public FixedPositionConstraint(RigidBodyIndex rigidBodyId, Vector3f worldSpaceAnchor, Vector3f localSpaceAnchor, DriftParameters driftParameters, CachingModuleProvider cachingProvider, float max, float min) {
         this.rigidBodyId = rigidBodyId;
         this.worldSpaceAnchor = worldSpaceAnchor;
         this.localSpaceAnchor = localSpaceAnchor;
         this.driftParameters = driftParameters;
         this.cachingProvider = cachingProvider;
+        this.max = max;
+        this.min = min;
+    }
+
+    public FixedPositionConstraint(RigidBodyIndex rigidBodyId, Vector3f worldSpaceAnchor, Vector3f localSpaceAnchor, DriftParameters driftParameters, CachingModuleProvider cachingProvider) {
+        this(rigidBodyId, worldSpaceAnchor, localSpaceAnchor, driftParameters, cachingProvider, Float.MAX_VALUE, -Float.MAX_VALUE);
+    }
+
+    public void setMax(float max) {
+        this.max = max;
+    }
+
+    public void setMin(float min) {
+        this.min = min;
     }
 
     @Override
     public ConstraintData compute(RigidBodyIsland island) {
-        return new FixedPositionConstraintData(rigidBodyId.getIdentifiedData(island));
+        IdentifiedDynamicsData identifiedData = rigidBodyId.getIdentifiedData(island);
+        if (identifiedData==null)
+            return null;
+        return new FixedPositionConstraintData(identifiedData);
     }
 
     @Override
@@ -84,12 +104,12 @@ public class FixedPositionConstraint implements Constraint {
 
         @Override
         public float[] getMax() {
-            return new float[] {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
+            return new float[] {max, max, max};
         }
 
         @Override
         public float[] getMin() {
-            return new float[] {-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
+            return new float[] {min, min, min};
         }
 
         @Override
