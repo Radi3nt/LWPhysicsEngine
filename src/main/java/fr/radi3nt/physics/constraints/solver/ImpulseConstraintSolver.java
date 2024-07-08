@@ -38,7 +38,7 @@ public class ImpulseConstraintSolver implements ConstraintSolver {
 
         DynamicsData[] bodiesIndex = filledData.data;
         CachingConstraintModule[] modules = filledData.constraintModules;
-        ArbitraryMatrix m = inverseMassMatrixComputer.computeInverseMassMatrix(bodiesIndex);
+        ArbitraryMatrix m = inverseMassMatrixComputer.computeInverseMassMatrix(filledData);
         ArbitraryMatrix j = filledData.j;
         ArbitraryMatrix a = computeA(j, m);
         VectorNf v = computeV(bodiesIndex);
