@@ -1,4 +1,4 @@
-package fr.radi3nt.physics.multithread.splitter;
+package fr.radi3nt.physics.splitter;
 
 import fr.radi3nt.physics.constraints.constraint.Constraint;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;

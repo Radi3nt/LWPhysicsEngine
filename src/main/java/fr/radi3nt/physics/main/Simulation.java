@@ -40,11 +40,10 @@ import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 import fr.radi3nt.physics.dynamics.ode.OdeSolver;
 import fr.radi3nt.physics.dynamics.ode.integrator.ImplicitEulerIntegrator;
 import fr.radi3nt.physics.dynamics.ode.rk4.AverageRungeKutta4OdeSolver;
-import fr.radi3nt.physics.multithread.link.group.ConstraintBodyRelationLinkTreeGrouper;
-import fr.radi3nt.physics.multithread.link.tree.ListConstraintsBodyRelationLinkTree;
-import fr.radi3nt.physics.multithread.splitter.ConstrainedIsland;
-import fr.radi3nt.physics.multithread.splitter.GroupIslandSplitter;
-import fr.radi3nt.physics.multithread.splitter.IslandSplitter;
+import fr.radi3nt.physics.splitter.group.ConstraintBodyIslandRelationGrouper;
+import fr.radi3nt.physics.splitter.ConstrainedIsland;
+import fr.radi3nt.physics.splitter.GroupIslandSplitter;
+import fr.radi3nt.physics.splitter.IslandSplitter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,7 +60,6 @@ public class Simulation {
     public final InstantConstraintList instantConstraintList = new InstantConstraintList();
     private final ImpulseConstraintSolver impulseConstraintSolver;
     private final IslandSplitter islandSplitter;
-    private final ListConstraintsBodyRelationLinkTree bodyRelationLinkTree;
     private final CompositionCollisionContactSolver collisionContactSolver;
 
     public final Collection<Runnable> afterSimulationUpdate = new ArrayList<>();
@@ -101,8 +99,8 @@ public class Simulation {
                 instantConstraintList);
         collisionContactSolver = new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(30), solver);
         collisionDetection = new CollisionDetection(aabbCacheProvider, manifoldCache, new SetCollisionDispatcher(new SATNarrowPhaseDetectionAlgorithm()));
-        bodyRelationLinkTree = new ListConstraintsBodyRelationLinkTree();
-        islandSplitter = new GroupIslandSplitter(new ConstraintBodyRelationLinkTreeGrouper(bodyRelationLinkTree, instantConstraintList), false);
+        ));
+        islandSplitter = new GroupIslandSplitter(new ConstraintBodyIslandRelationGrouper(instantConstraintList), false);
     }
 
     public void step(float dt) {
@@ -121,7 +119,6 @@ public class Simulation {
 
         collisionContactSolver.solve(process, dt);
 
-        bodyRelationLinkTree.setMainIsland(result);
         ConstrainedIsland[] islands = islandSplitter.getIslands(result);
         int mostBodies = 0;
         int mostConstraints = 0;

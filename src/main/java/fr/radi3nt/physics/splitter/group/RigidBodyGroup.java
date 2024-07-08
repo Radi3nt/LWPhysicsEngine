@@ -1,4 +1,4 @@
-package fr.radi3nt.physics.multithread.link.group;
+package fr.radi3nt.physics.splitter.group;
 
 import fr.radi3nt.physics.constraints.constraint.Constraint;
 import fr.radi3nt.physics.core.state.RigidBody;
