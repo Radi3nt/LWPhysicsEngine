@@ -45,6 +45,8 @@ public class ListConstraintFiller implements ConstraintFiller {
         Collection<Constraint> currentConstraints = constraints.getConstraints();
         for (Constraint constraint : currentConstraints) {
             ConstraintData constraintData = constraint.compute(island);
+            if (constraintData==null)
+                continue;
 
             CachingModuleProvider modules = constraintData.getCachingConstraintModules();
             DriftParameters[] driftParameters = constraintData.getDriftParameters();
@@ -76,12 +78,14 @@ public class ListConstraintFiller implements ConstraintFiller {
             }
         }
 
-        DynamicsData[] bodies = new DynamicsData[concernedBodies.size()];
+        IdentifiedDynamicsData[] bodies = new IdentifiedDynamicsData[concernedBodies.size()];
+        DynamicsData[] data = new DynamicsData[concernedBodies.size()];
         for (int i = 0; i < concernedBodies.size(); i++) {
-            bodies[i] = concernedBodies.get(i).data;
+            bodies[i] = concernedBodies.get(i);
+            data[i] = concernedBodies.get(i).data;
         }
 
-        return new FilledData(bodies, constraintModules.toArray(new CachingConstraintModule[0]), sparseArbitraryMatrix, min, max, ks, vectorToArray(c));
+        return new FilledData(bodies, data, constraintModules.toArray(new CachingConstraintModule[0]), sparseArbitraryMatrix, min, max, ks, vectorToArray(c));
     }
 
     private float[] vectorToArray(VectorNf states) {

@@ -5,6 +5,7 @@ import fr.radi3nt.maths.components.arbitrary.vector.ArrayVectorNf;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule;
+import fr.radi3nt.physics.constraints.constraint.index.IdentifiedDynamicsData;
 import fr.radi3nt.physics.constraints.sle.SleSolver;
 import fr.radi3nt.physics.constraints.solver.caching.ConstraintCacher;
 import fr.radi3nt.physics.constraints.solver.filled.ConstraintFiller;
@@ -35,7 +36,7 @@ public class ImpulseConstraintSolver implements ConstraintSolver {
     public void solve(ConstraintFiller filler, RigidBodyIsland island, float dt) {
         FilledData filledData = filler.fill(island);
 
-        DynamicsData[] bodiesIndex = filledData.rigidBodiesIndex;
+        DynamicsData[] bodiesIndex = filledData.data;
         CachingConstraintModule[] modules = filledData.constraintModules;
         ArbitraryMatrix m = inverseMassMatrixComputer.computeInverseMassMatrix(bodiesIndex);
         ArbitraryMatrix j = filledData.j;
@@ -51,12 +52,17 @@ public class ImpulseConstraintSolver implements ConstraintSolver {
         lambdaCaching.cache(modules, lambda);
 
         VectorNf impulses = j.transformTransposed(lambda);
-        addImpulses(bodiesIndex, impulses);
+        addImpulses(filledData.rigidBodiesIndex, impulses);
     }
 
-    private static void addImpulses(DynamicsData[] bodiesIndex, VectorNf impulses) {
+    private static void addImpulses(IdentifiedDynamicsData[] bodiesIndex, VectorNf impulses) {
         for (int i = 0; i < bodiesIndex.length; i++) {
-            DynamicsData data = bodiesIndex[i];
+            IdentifiedDynamicsData identifiedDynamicsData = bodiesIndex[i];
+
+            if (identifiedDynamicsData.isStatic())
+                continue;
+
+            DynamicsData data = identifiedDynamicsData.data;
             Vector3f linearImpulse = new SimpleVector3f(impulses.get(i*STATE_STRIDE), impulses.get(i*STATE_STRIDE+1), impulses.get(i*STATE_STRIDE+2));
             Vector3f angularImpulse = new SimpleVector3f(impulses.get(i*STATE_STRIDE+3), impulses.get(i*STATE_STRIDE+4), impulses.get(i*STATE_STRIDE+5));
             data.addLinearImpulse(linearImpulse);
