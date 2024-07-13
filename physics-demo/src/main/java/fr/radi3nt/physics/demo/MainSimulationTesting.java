@@ -1,4 +1,4 @@
-package fr.radi3nt.physics.main;
+package fr.radi3nt.physics.demo;
 
 import fr.radi3nt.maths.components.advanced.matrix.ArrayMatrix3x3;
 import fr.radi3nt.maths.components.advanced.matrix.Matrix3x3;
@@ -8,6 +8,7 @@ import fr.radi3nt.physics.collision.shape.shapes.BoxShape;
 import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.core.state.DynamicsProperties;
 import fr.radi3nt.physics.core.state.RigidBody;
+import fr.radi3nt.physics.main.Simulation;
 import fr.radi3nt.physics.sleeping.NoSleepingData;
 
 public class MainSimulationTesting {

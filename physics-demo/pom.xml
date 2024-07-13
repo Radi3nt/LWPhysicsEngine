@@ -3,16 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>fr.radi3nt</groupId>
+        <artifactId>lightweight-physics-engine</artifactId>
+        <version>1.0</version>
+    </parent>
 
-    <groupId>fr.radi3nt</groupId>
-    <artifactId>lightweight-physics-engine</artifactId>
-    <version>1.0</version>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>physics-core</module>
-        <module>physics-demo</module>
-    </modules>
+    <artifactId>physics-demo</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -22,15 +19,9 @@
     <dependencies>
         <dependency>
             <groupId>fr.radi3nt</groupId>
-            <artifactId>MathsHelper</artifactId>
+            <artifactId>physics-core</artifactId>
             <version>1.0</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
