@@ -1,7 +1,6 @@
 package fr.radi3nt.physics.dynamics.force.caster;
 
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceAccumulator;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 import java.util.ArrayList;
@@ -17,10 +16,15 @@ public class CompositeForceCaster implements ForceCaster {
     }
 
     @Override
-    public void cast(ForceAccumulator accumulator, RigidBodyIsland island, float dt) {
+    public void cast(MotionAccumulator accumulator, RigidBodyIsland island, float dt, int index) {
         for (ForceCaster forceCaster : forceCasters) {
-            forceCaster.cast(accumulator, island, dt);
+            forceCaster.cast(accumulator, island, dt, index);
         }
+    }
+
+    @Override
+    public void step(RigidBodyIsland island, float dt) {
+        forceCasters.forEach(forceCaster -> forceCaster.step(island, dt));
     }
 
     public CompositeForceCaster add(ForceCaster caster) {
@@ -28,7 +32,7 @@ public class CompositeForceCaster implements ForceCaster {
         return this;
     }
 
-    public CompositeForceCaster remove(ForceResult caster) {
+    public CompositeForceCaster remove(ForceCaster caster) {
         forceCasters.remove(caster);
         return this;
     }

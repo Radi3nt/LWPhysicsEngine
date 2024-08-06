@@ -1,13 +1,13 @@
 package fr.radi3nt.physics.dynamics.force.caster;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceAccumulator;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 public class VectorForceCaster implements ForceCaster {
 
-    private final ForceResult cachingForceResult = new ForceResult();
+    private final MotionResult cachingForceResult = new MotionResult();
     private final Vector3f force;
     private final Vector3f torque;
 
@@ -17,8 +17,8 @@ public class VectorForceCaster implements ForceCaster {
     }
 
     @Override
-    public void cast(ForceAccumulator accumulator, RigidBodyIsland island, float dt) {
+    public void cast(MotionAccumulator accumulator, RigidBodyIsland island, float dt, int index) {
         cachingForceResult.set(force, torque);
-        accumulator.addToAll(cachingForceResult);
+        accumulator.addMotion(cachingForceResult, index);
     }
 }

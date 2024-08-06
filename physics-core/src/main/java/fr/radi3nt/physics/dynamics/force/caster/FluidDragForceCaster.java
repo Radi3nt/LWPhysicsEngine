@@ -2,15 +2,15 @@ package fr.radi3nt.physics.dynamics.force.caster;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.core.state.RigidBody;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceAccumulator;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 public class FluidDragForceCaster implements ForceCaster {
 
     private final DragProperties dragProperties;
     private final DragCoefficientSupplier dragCoefficientSupplier;
-    private final ForceResult cachingForceResult = new ForceResult();
+    private final MotionResult cachingForceResult = new MotionResult();
 
     public FluidDragForceCaster(DragProperties dragProperties, DragCoefficientSupplier dragCoefficientSupplier) {
         this.dragProperties = dragProperties;
@@ -18,14 +18,12 @@ public class FluidDragForceCaster implements ForceCaster {
     }
 
     @Override
-    public void cast(ForceAccumulator accumulator, RigidBodyIsland island, float dt) {
-        for (int i = 0; i < island.getSize(); i++) {
-            RigidBody rigidBody = island.getRigidBody(i);
-            Vector3f dragForce = getDragForce(rigidBody);
+    public void cast(MotionAccumulator accumulator, RigidBodyIsland island, float dt, int index) {
+        RigidBody rigidBody = island.getRigidBody(index);
+        Vector3f dragForce = getDragForce(rigidBody);
 
-            cachingForceResult.set(dragForce, rigidBody.getDynamicsData().getAngularMomentum().duplicate().mul(-0.5f));
-            accumulator.addForce(cachingForceResult, i);
-        }
+        cachingForceResult.set(dragForce, rigidBody.getDynamicsData().getAngularMomentum().duplicate().mul(-0.5f));
+        accumulator.addMotion(cachingForceResult, index);
     }
 
     private Vector3f getDragForce(RigidBody rigidBody) {

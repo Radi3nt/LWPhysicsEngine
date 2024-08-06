@@ -4,20 +4,39 @@ import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.collision.CollisionData;
 import fr.radi3nt.physics.core.TransformedObject;
+import fr.radi3nt.physics.sleeping.NoSleepingData;
 import fr.radi3nt.physics.sleeping.SleepingData;
 
 public class RigidBody implements TransformedObject {
 
     private final int rigidBodyId;
+    private final ForceData forceData;
     private final DynamicsData dynamicsData;
     private final CollisionData collisionData;
     private final SleepingData sleepingData;
 
     public RigidBody(int rigidBodyId, DynamicsData dynamicsData, CollisionData collisionData, SleepingData sleepingData) {
+        this(rigidBodyId, new ForceData(), dynamicsData, collisionData, sleepingData);
+    }
+
+    public RigidBody(int rigidBodyId, DynamicsData dynamicsData, CollisionData collisionData) {
+        this(rigidBodyId, new ForceData(), dynamicsData, collisionData, NoSleepingData.INSTANCE);
+    }
+
+    public RigidBody(int rigidBodyId, ForceData forceData, DynamicsData dynamicsData, CollisionData collisionData, SleepingData sleepingData) {
         this.rigidBodyId = rigidBodyId;
+        this.forceData = forceData;
         this.dynamicsData = dynamicsData;
         this.collisionData = collisionData;
         this.sleepingData = sleepingData;
+    }
+
+    public RigidBody preview(Vector3f newPosition, Quaternion newOrientation, Vector3f newLinearMomentum, Vector3f newAngularMomentum) {
+        return new RigidBody(rigidBodyId, forceData, DynamicsData.from(dynamicsData.getBodyProperties(), newPosition, newOrientation, newLinearMomentum, newAngularMomentum), collisionData, sleepingData);
+    }
+
+    public RigidBody preview() {
+        return new RigidBody(rigidBodyId, forceData, DynamicsData.from(dynamicsData), collisionData, sleepingData);
     }
 
     public void setState(DynamicsData data) {
@@ -57,6 +76,11 @@ public class RigidBody implements TransformedObject {
     public int getRigidBodyId() {
         return rigidBodyId;
     }
+
+    public ForceData getForceData() {
+        return forceData;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -3,9 +3,8 @@ package fr.radi3nt.physics.dynamics.ode.rk4;
 import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.core.state.RigidBody;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.force.caster.ForceCaster;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 import fr.radi3nt.physics.dynamics.ode.integrator.Integration;
@@ -23,7 +22,7 @@ public class AverageRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
         Vector3f[] averageForcesAndTorque = new Vector3f[size*2];
         Vector3f[] averageLinearAndAngularVelocities = new Vector3f[size*2];
 
-        ForceResult forceResult = new ForceResult();
+        MotionResult forceResult = new MotionResult();
         for (int i = 0; i < size; i++) {
             fillForces(forceResult, i, averageForcesAndTorque);
             fillVelocities(rigidBodyIsland, q1, q2, q3, i, averageLinearAndAngularVelocities);
@@ -51,7 +50,7 @@ public class AverageRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
         cumulatedAngularVelocity.add(body.getDynamicsData().getAngularVelocity().duplicate().mul(weight));
     }
 
-    private void fillForces(ForceResult forceResult, int i, Vector3f[] averageForcesAndTorque) {
+    private void fillForces(MotionResult forceResult, int i, Vector3f[] averageForcesAndTorque) {
         Vector3f cumulatedForce = new SimpleVector3f();
         Vector3f cumulatedTorque = new SimpleVector3f();
 
@@ -77,7 +76,7 @@ public class AverageRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
             rigidBody.getSleepingData().ode(force, torque);
 
             if (rigidBody.isStatic()) {
-                resultBody = new RigidBody(rigidBody.getRigidBodyId(), DynamicsData.from(rigidBody.getDynamicsData()), rigidBody.getCollisionData(), rigidBody.getSleepingData());
+                resultBody = rigidBody.preview();
                 sleeping++;
             } else {
                 Vector3f linearMomentum = Integration.integrateVector(force, rigidBody.getDynamicsData().getLinearMomentum(), dt);
@@ -86,7 +85,7 @@ public class AverageRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
                 Vector3f position = Integration.integrateVector(averageLinearAndAngularVelocities[i * 2], rigidBody.getDynamicsData().getPosition(), dt);
                 Quaternion rotation = Integration.integrateQuaternion(averageLinearAndAngularVelocities[i * 2 + 1], rigidBody.getDynamicsData().getRotation(), dt);
 
-                resultBody = new RigidBody(rigidBody.getRigidBodyId(), DynamicsData.from(rigidBody.getDynamicsData().getBodyProperties(), position, rotation, linearMomentum, angularMomentum), rigidBody.getCollisionData(), rigidBody.getSleepingData());
+                resultBody = rigidBody.preview(position, rotation, linearMomentum, angularMomentum);
             }
             result.setRigidBody(resultBody, i);
         }

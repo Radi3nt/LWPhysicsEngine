@@ -2,13 +2,13 @@ package fr.radi3nt.physics.dynamics.force.caster;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.core.state.RigidBody;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceAccumulator;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 public class MassedVectorForceCaster implements ForceCaster {
 
-    private final ForceResult cachingForceResult = new ForceResult();
+    private final MotionResult cachingForceResult = new MotionResult();
     private final Vector3f force;
     private final Vector3f torque;
 
@@ -18,15 +18,13 @@ public class MassedVectorForceCaster implements ForceCaster {
     }
 
     @Override
-    public void cast(ForceAccumulator accumulator, RigidBodyIsland island, float dt) {
-        for (int i = 0; i < island.getSize(); i++) {
-            RigidBody rigidBody = island.getRigidBody(i);
-            Vector3f currentForce = force.duplicate();
-            float inverseMass = rigidBody.getDynamicsData().getBodyProperties().inverseMass;
-            if (inverseMass>0)
-                currentForce.mul(1/inverseMass);
-            cachingForceResult.set(currentForce, torque);
-            accumulator.addForce(cachingForceResult, i);
-        }
+    public void cast(MotionAccumulator accumulator, RigidBodyIsland island, float dt, int index) {
+        RigidBody rigidBody = island.getRigidBody(index);
+        Vector3f currentForce = force.duplicate();
+        float inverseMass = rigidBody.getDynamicsData().getBodyProperties().inverseMass;
+        if (inverseMass>0)
+            currentForce.mul(1/inverseMass);
+        cachingForceResult.set(currentForce, torque);
+        accumulator.addMotion(cachingForceResult, index);
     }
 }

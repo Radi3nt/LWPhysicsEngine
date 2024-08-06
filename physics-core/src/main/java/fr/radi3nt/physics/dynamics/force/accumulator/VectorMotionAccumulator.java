@@ -5,11 +5,11 @@ import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 
 import java.util.Vector;
 
-public class VectorForceAccumulator implements ForceAccumulator {
+public class VectorMotionAccumulator implements MotionAccumulator {
 
     private final Vector<Vector3f> forceAndTorque;
 
-    public VectorForceAccumulator() {
+    public VectorMotionAccumulator() {
         this.forceAndTorque = new Vector<>();
     }
 
@@ -23,28 +23,28 @@ public class VectorForceAccumulator implements ForceAccumulator {
         forceAndTorque.replaceAll(ignored -> new SimpleVector3f());
     }
 
-    public void setForce(ForceResult result, int i) {
-        forceAndTorque.set(i*2, result.getForce());
-        forceAndTorque.set(i*2+1, result.getTorque());
+    public void setMotion(MotionResult result, int i) {
+        forceAndTorque.set(i*2, result.getLinear());
+        forceAndTorque.set(i*2+1, result.getAngular());
     }
 
-    public void getForce(ForceResult result, int i) {
+    public void getMotion(MotionResult result, int i) {
         result.set(forceAndTorque.get(i*2), forceAndTorque.get(i*2+1));
     }
 
     @Override
-    public void addForce(ForceResult result, int i) {
-        forceAndTorque.get(i*2).add(result.getForce());
-        forceAndTorque.get(i*2+1).add(result.getTorque());
+    public void addMotion(MotionResult result, int i) {
+        forceAndTorque.get(i*2).add(result.getLinear());
+        forceAndTorque.get(i*2+1).add(result.getAngular());
     }
 
     @Override
-    public void addToAll(ForceResult force) {
+    public void addToAll(MotionResult force) {
         for (int i = 0; i < forceAndTorque.size()/2; i++) {
             Vector3f summedForce = forceAndTorque.get(i*2);
             Vector3f summedTorque = forceAndTorque.get(i*2+1);
-            summedForce.add(force.getForce());
-            summedTorque.add(force.getTorque());
+            summedForce.add(force.getLinear());
+            summedTorque.add(force.getAngular());
         }
     }
 }

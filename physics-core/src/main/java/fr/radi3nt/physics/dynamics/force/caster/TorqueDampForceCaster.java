@@ -3,13 +3,13 @@ package fr.radi3nt.physics.dynamics.force.caster;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.core.state.RigidBody;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceAccumulator;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 public class TorqueDampForceCaster implements ForceCaster {
 
-    private final ForceResult cachingForceResult = new ForceResult();
+    private final MotionResult cachingForceResult = new MotionResult();
     private final float damping;
 
     public TorqueDampForceCaster(float damping) {
@@ -17,14 +17,12 @@ public class TorqueDampForceCaster implements ForceCaster {
     }
 
     @Override
-    public void cast(ForceAccumulator accumulator, RigidBodyIsland island, float dt) {
-        for (int i = 0; i < island.getSize(); i++) {
-            RigidBody rigidBody = island.getRigidBody(i);
+    public void cast(MotionAccumulator accumulator, RigidBodyIsland island, float dt, int index) {
+        RigidBody rigidBody = island.getRigidBody(index);
 
-            Vector3f dragTorque = getDragTorque(rigidBody);
-            cachingForceResult.set(new SimpleVector3f(), dragTorque);
-            accumulator.addForce(cachingForceResult, i);
-        }
+        Vector3f dragTorque = getDragTorque(rigidBody);
+        cachingForceResult.set(new SimpleVector3f(), dragTorque);
+        accumulator.addMotion(cachingForceResult, index);
     }
 
     private Vector3f getDragTorque(RigidBody rigidBody) {

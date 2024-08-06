@@ -2,7 +2,7 @@ package fr.radi3nt.physics.dynamics.ode.rk4;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.physics.dynamics.force.accumulator.ForceResult;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.force.caster.ForceCaster;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 import fr.radi3nt.physics.dynamics.ode.integrator.Integrator;
@@ -15,7 +15,7 @@ public class IntegrateRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
 
     @Override
     protected void combineResults(RigidBodyIsland rigidBodyIsland, float dt) {
-        ForceResult forceResult = new ForceResult();
+        MotionResult forceResult = new MotionResult();
         for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
             fillKr(forceResult, i);
         }
@@ -28,7 +28,7 @@ public class IntegrateRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
         integrator.integrate(original, result, kR, dt);
     }
 
-    private void fillKr(ForceResult forceResult, int i) {
+    private void fillKr(MotionResult forceResult, int i) {
         Vector3f cumulatedForce = new SimpleVector3f();
         Vector3f cumulatedTorque = new SimpleVector3f();
 
@@ -39,7 +39,7 @@ public class IntegrateRungeKutta4OdeSolver extends RungeKutta4OdeSolver {
 
         forceResult.set(cumulatedForce, cumulatedTorque);
 
-        kR.setForce(forceResult, i);
+        kR.setMotion(forceResult, i);
     }
 
 }
