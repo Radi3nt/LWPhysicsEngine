@@ -2,9 +2,20 @@ package fr.radi3nt.physics.dynamics.island;
 
 import fr.radi3nt.physics.core.state.RigidBody;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+
 public class ArrayRigidBodyIsland implements RigidBodyIsland, EditableRigidBodyIsland {
 
     protected RigidBody[] rigidBodies;
+
+    public ArrayRigidBodyIsland() {
+    }
+
+    public ArrayRigidBodyIsland(RigidBody... rigidBodies) {
+        this.rigidBodies = rigidBodies;
+    }
 
     public void setRigidBody(RigidBody rigidBody, int index) {
         rigidBodies[index] = rigidBody;
@@ -38,7 +49,22 @@ public class ArrayRigidBodyIsland implements RigidBodyIsland, EditableRigidBodyI
     }
 
     @Override
+    public int getRigidBodyIndexById(int id) {
+        for (int i = 0, rigidBodiesLength = rigidBodies.length; i < rigidBodiesLength; i++) {
+            RigidBody rigidBody = rigidBodies[i];
+            if (rigidBody.getRigidBodyId() == id)
+                return i;
+        }
+        return -1;
+    }
+
+    @Override
     public int getSize() {
         return rigidBodies.length;
+    }
+
+    @Override
+    public Iterator<RigidBody> iterator() {
+        return Collections.unmodifiableCollection(Arrays.asList(rigidBodies)).iterator();
     }
 }
