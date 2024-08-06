@@ -16,6 +16,7 @@ public class CollisionData {
     private final CollisionShapeProvider collisionShapeProvider;
     private final Collection<PersistentManifold> currentCollisions = new ArrayList<>();
     private long currentStep;
+    private boolean empty = false;
 
     public CollisionData(CollisionShapeProvider collisionShape) {
         this.collisionShapeProvider = collisionShape;
@@ -28,6 +29,11 @@ public class CollisionData {
     public CollisionData(CollisionShape collisionShape) {
         PreCollisionShape preCollisionShape = collisionShape instanceof PreCollisionShape ? (PreCollisionShape) collisionShape : null;
         this.collisionShapeProvider = new SetCollisionShapeProvider(preCollisionShape, new DuoCollisionShape(collisionShape, preCollisionShape));
+    }
+
+    public CollisionData() {
+        this.collisionShapeProvider = new SetCollisionShapeProvider(null);
+        empty = true;
     }
 
     public void relevance(long step) {
@@ -54,5 +60,9 @@ public class CollisionData {
         ArrayList<PersistentManifold> relevantManifolds = new ArrayList<>(currentCollisions);
         relevantManifolds.removeIf(manifold -> !manifold.isRelevant(currentStep, 0) || manifold.isEmpty());
         return relevantManifolds;
+    }
+
+    public boolean isEmpty() {
+        return empty;
     }
 }

@@ -23,6 +23,8 @@ public class OneDimensionPairMeeter {
     }
 
     public void add(RigidBody rigidBody) {
+        if (rigidBody.getCollisionData().isEmpty())
+            return;
         generatePairsContacts(rigidBody);
         activeList.add(rigidBody);
     }
