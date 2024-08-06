@@ -1,6 +1,6 @@
 package fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.box;
 
-import fr.radi3nt.maths.components.advanced.quaternions.ComponentsQuaternion;
+import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.maths.pool.ObjectPool;
@@ -8,26 +8,23 @@ import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.ClipPlanes;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.Edge;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.info.*;
-import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.projection.AxisProjectionProvider;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.projection.SatProjectionProvider;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.projection.VerticesProjectionProvider;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.SatProcessedShape;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.StoredSatProcessedShape;
 import fr.radi3nt.physics.core.TransformedObject;
 
-import static java.lang.Math.abs;
-
 public class SatBoxProcessedShape extends StoredSatProcessedShape implements SatProcessedShape {
 
     private final TransformedObject transformedObject;
-    private final AxisProjectionProvider provider;
+    private SatProjectionProvider provider;
     private final Vector3f size;
     private SatEdge[] edges;
 
-    public SatBoxProcessedShape(TransformedObject transformedObject, Vector3f size) {
+    public SatBoxProcessedShape(TransformedObject transformedObject, Vector3f size, Vector3f offset, Quaternion rotation) {
         this.transformedObject = transformedObject;
         this.size = size;
-        provider = new AxisProjectionProvider(size, new SimpleVector3f(), ComponentsQuaternion.zero(), transformedObject);;
+        //provider = new AxisProjectionProvider(size, offset, rotation, transformedObject);
     }
 
     public SatBoxProcessedShape compute() {
@@ -35,6 +32,10 @@ public class SatBoxProcessedShape extends StoredSatProcessedShape implements Sat
         computeAxisArray();
         computeClipEdges();
         computeClipPlanes();
+
+        Vector3f[] transformedVertices = getTransformedArray(vertices, transformedObject);
+        provider = new VerticesProjectionProvider(transformedVertices);
+
         return this;
     }
 

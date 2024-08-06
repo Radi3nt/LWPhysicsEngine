@@ -28,7 +28,9 @@ public class GjkBoxShapeProvider implements ProcessedShapeProvider<GjkProcessedS
 
         Vector3f[] vertices = new Vector3f[8];
         for (int i = 0; i < vertices.length; i++) {
-            vertices[i] = transformedObject.toWorldSpace(new SimpleVector3f((i%2)*2-1, ((i/2)%2)*2-1, ((i/2/2)%2)*2-1).mul(size));
+            Vector3f localSpacePos = new SimpleVector3f((i % 2) * 2 - 1, ((i / 2) % 2) * 2 - 1, ((i / 2 / 2) % 2) * 2 - 1).mul(size);
+            boxShape.getRotation().transform(localSpacePos);
+            vertices[i] = transformedObject.toWorldSpace(localSpacePos.add(boxShape.getOffset()));
         }
 
         return new GjkVerticesProcessedShape(vertices);

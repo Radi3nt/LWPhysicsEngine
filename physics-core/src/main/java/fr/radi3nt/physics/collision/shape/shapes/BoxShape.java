@@ -35,7 +35,7 @@ public class BoxShape extends TransformedShape implements PreCollisionShape {
 
     @Override
     public BoundingSphere getBoundingSphere(TransformedObject object) {
-        return SetBoundingSphere.from(object, offset, size.length());
+        return new SetBoundingSphere(object.toWorldSpace(offset), size.length());
     }
 
     @Override

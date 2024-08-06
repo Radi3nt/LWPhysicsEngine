@@ -1,8 +1,8 @@
 package fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.provider;
 
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.box.OffsetSatBoxProcessedShape;
 import fr.radi3nt.physics.collision.detection.narrow.processed.ProcessedShapeProvider;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.SatProcessedShape;
-import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.box.SatBoxProcessedShape;
 import fr.radi3nt.physics.collision.shape.shapes.BoxShape;
 import fr.radi3nt.physics.collision.shape.shapes.CollisionShape;
 import fr.radi3nt.physics.core.TransformedObject;
@@ -21,6 +21,7 @@ public class SatBoxProcessedShapeProvider implements ProcessedShapeProvider<SatP
 
     @Override
     public SatProcessedShape getShape(CollisionShape shape, TransformedObject transformedObject) {
-        return new SatBoxProcessedShape(transformedObject, ((BoxShape) shape).getSize()).compute();
+        BoxShape boxShape = (BoxShape) shape;
+        return new OffsetSatBoxProcessedShape(transformedObject, boxShape.getSize(), boxShape.getOffset(), boxShape.getRotation()).compute();
     }
 }

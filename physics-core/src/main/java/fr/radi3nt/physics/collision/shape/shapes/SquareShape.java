@@ -14,14 +14,17 @@ import fr.radi3nt.physics.core.TransformedObject;
 public class SquareShape extends TransformedShape implements PreCollisionShape {
 
     private final Vector2f size;
+    private final float radius;
 
     public SquareShape(Vector3f offset, Quaternion rotation, Vector2f size) {
         super(offset, rotation);
         this.size = size;
+        radius = size.length();
     }
 
     public SquareShape(Vector2f size) {
         this.size = size;
+        radius = size.length();
     }
 
     public Vector2f getSize() {
@@ -35,6 +38,6 @@ public class SquareShape extends TransformedShape implements PreCollisionShape {
 
     @Override
     public BoundingSphere getBoundingSphere(TransformedObject object) {
-        return SetBoundingSphere.from(object, offset, size.length());
+        return new SetBoundingSphere(object.toWorldSpace(offset), radius);
     }
 }
