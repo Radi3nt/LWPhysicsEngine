@@ -13,8 +13,8 @@ public class SetBoundingSphere implements BoundingSphere {
         this.radius = radius;
     }
 
-    public static SetBoundingSphere from(TransformedObject object, Vector3f position, float radius) {
-        return new SetBoundingSphere(object.getPosition().duplicate().add(position), radius);
+    public static SetBoundingSphere from(TransformedObject object, Vector3f offset, float radius) {
+        return new SetBoundingSphere(object.getPosition().duplicate().add(offset), radius);
     }
 
     public Vector3f getPosition() {
