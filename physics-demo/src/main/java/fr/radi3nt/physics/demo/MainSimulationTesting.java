@@ -4,6 +4,7 @@ import fr.radi3nt.maths.components.advanced.matrix.ArrayMatrix3x3;
 import fr.radi3nt.maths.components.advanced.matrix.Matrix3x3;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.CollisionData;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
 import fr.radi3nt.physics.collision.shape.shapes.BoxShape;
 import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.core.state.DynamicsProperties;
@@ -24,7 +25,7 @@ public class MainSimulationTesting {
         DynamicsProperties dynamicsProperties = new DynamicsProperties(1, iBIT, 1, 1, 1);
 
         BoxShape boxShape = new BoxShape(new SimpleVector3f(1f, 1f, 1f));
-        simulation.getRigidBodyIsland().add(new RigidBody(0, DynamicsData.zero(dynamicsProperties), new CollisionData(boxShape, null), new NoSleepingData()));
+        simulation.getRigidBodyIsland().add(new RigidBody(0, DynamicsData.zero(dynamicsProperties), new CollisionData(boxShape, (PreCollisionShape) null), new NoSleepingData()));
         //simulation.getRigidBodyIsland().add(new RigidBody(DynamicsData.from(dynamicsProperties, new SimpleVector3f(0.5f, 0.5f, 0.5f), ComponentsQuaternion.fromAxisAndAngle(new SimpleVector3f(0, 1, 0), JavaMathAngle.fromDegree(20f))), new CollisionData(collisionShape)));
         //simulation.getRigidBodyIsland().add(new RigidBody(1, DynamicsData.from(dynamicsProperties, new SimpleVector3f(0.5f, 0.5f, 0.5f), ComponentsQuaternion.zero(), new SimpleVector3f(), new SimpleVector3f(100, 0, 0)), new CollisionData(collisionShape)));
 
