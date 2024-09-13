@@ -62,7 +62,7 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             initialRelativeVec[i] = contactPoint.getRelativeVelocityVec().duplicate();
         }
 
-        removeOverlap(a, b, sleepA, sleepB, contactPoints, staticValues);
+        removeOverlap(a, b, sleepA, sleepB, contactPoints, initialRelativeVel, staticValues);
 
         for (ContactPoint contactPoint : contactPoints) {
             contactPoint.computeRealVelocity();
@@ -127,7 +127,8 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
         return t.mul(frictionFactor);
     }
 
-    private void removeOverlap(DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB, ContactPoint[] contactPoints, float[] staticValues) {
+    private void removeOverlap(DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB, ContactPoint[] contactPoints, float[] initialRelativeVel, float[] staticValues) {
+        float[] accumulatedImpulses = new float[initialRelativeVel.length];
         for (int currentIteration = 0; currentIteration < iterationCount; currentIteration++) {
             for (ContactPoint contactPoint : contactPoints) {
                 contactPoint.computeRealVelocity();
@@ -135,7 +136,8 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             boolean atLeastOneContactCollided = false;
             for (int i = 0; i < contactPoints.length; i++) {
                 ContactPoint contactPoint = contactPoints[i];
-                if (!contactPoint.isCollidingContact())
+                float relativeVel = initialRelativeVel[i];
+                if (relativeVel >= 0)
                     continue;
 
                 sleepA.wakeUp();
@@ -154,7 +156,13 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
                 Vector3f dir = normal.duplicate().add(getFrictionVec(a, b, normal, contactPoint.getRelativeVelocityVec(), impulseForce));
 
                 float j = numerator / staticValues[i];
-                Vector3f fullImpulse = dir.duplicate().mul(j / iterationCount);
+                float force = j / (iterationCount);
+                float oldAccumulatedImpulse = accumulatedImpulses[i];
+                accumulatedImpulses[i] = Math.max(force+oldAccumulatedImpulse, 0);
+
+                float difference = accumulatedImpulses[i]-oldAccumulatedImpulse;
+
+                Vector3f fullImpulse = dir.duplicate().mul(difference);
 
                 b.addLinearImpulse(fullImpulse);
                 b.addAngularImpulse(rb.duplicate().cross(fullImpulse.duplicate()));
