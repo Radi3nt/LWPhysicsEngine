@@ -89,7 +89,7 @@ public class GJKSimplex {
         return distLine(a, b);
     }
 
-    private static float distLine(Vector3f a, Vector3f b) {
+    public static float distLine(Vector3f a, Vector3f b) {
 
         Vector3f ab = b.duplicate().sub(a);
         Vector3f ao = a.duplicate().negate();
@@ -102,30 +102,6 @@ public class GJKSimplex {
 
         float distance = closestPoint.length();
         return distance;
-
-        /*
-        Vector3f ab = b.duplicate().sub(a);
-        Vector3f ao = a.duplicate().negate();
-
-        Vector3f abo = ab.duplicate().cross(ao);
-
-        float projection = abo.dot(ao)/ab.dot(ao);
-
-        Supplier<Float> currentMin = () -> projection;
-        float currentMinSquared = projection*projection;
-
-        if (currentMinSquared>a.lengthSquared()) {
-            currentMin = a::length;
-            currentMinSquared = a.lengthSquared();
-        }
-
-        if (currentMinSquared>b.lengthSquared()) {
-            currentMin = b::length;
-            currentMinSquared = b.lengthSquared();
-        }
-
-        return currentMin.get();
-         */
     }
 
     private static float distProjected(Vector3f ab, Vector3f ao) {

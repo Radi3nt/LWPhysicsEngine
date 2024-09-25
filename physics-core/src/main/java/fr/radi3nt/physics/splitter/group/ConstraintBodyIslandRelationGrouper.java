@@ -24,7 +24,7 @@ public class ConstraintBodyIslandRelationGrouper implements IslandRelationGroupe
             rigidBodies[i] = mainIsland.getRigidBody(i);
         }
         List<RigidBody> remainingRigidBodies = new ArrayList<>(Arrays.asList(rigidBodies));
-        remainingRigidBodies.removeIf(remainingRigidBody -> remainingRigidBody.getDynamicsData().getBodyProperties().inverseMass==0 || remainingRigidBody.getSleepingData().isSleeping());
+        remainingRigidBodies.removeIf(ConstraintBodyIslandRelationGrouper::shouldNotLinkGroup);
 
         List<Constraint> remainingConstraints = new ArrayList<>(constraintList.getConstraints());
         Collection<RigidBodyGroup> groups = new ArrayList<>();
@@ -38,6 +38,10 @@ public class ConstraintBodyIslandRelationGrouper implements IslandRelationGroupe
             group = new RigidBodyGroup();
         }
         return groups;
+    }
+
+    private static boolean shouldNotLinkGroup(RigidBody remainingRigidBody) {
+        return remainingRigidBody.getDynamicsData().getBodyProperties().inverseMass == 0 || remainingRigidBody.getSleepingData().isSleeping();
     }
 
     private void tryAddToGroup(List<RigidBody> remainingRigidBodies, List<Constraint> remainingConstraints, RigidBodyGroup group, RigidBody current, RigidBodyIsland mainIsland) {

@@ -11,7 +11,7 @@ public enum ContactType {
         if (dot < -interval) {
             return ContactType.COLLIDING;
         }
-        if (-interval <= dot && interval >= dot) {
+        if (-interval <= dot && dot <= interval) {
             return ContactType.RESTING;
         }
 
