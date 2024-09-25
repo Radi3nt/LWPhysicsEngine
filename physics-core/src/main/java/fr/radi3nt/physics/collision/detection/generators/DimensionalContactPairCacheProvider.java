@@ -31,20 +31,20 @@ public class DimensionalContactPairCacheProvider implements ContactPairCacheProv
         OneDimensionPairMeeter oneDimensionPairMeeter = new OneDimensionPairMeeter(pairGenerator);
         OneDimensionOrderer oneDimensionOrderer = new OneDimensionOrderer(oneDimensionProvider);
 
-        Collection<RigidBody> rigidBodies = new ArrayList<>();
-        Collection<RigidBody> nonPhysical = new ArrayList<>();
+        Collection<OneDimensionPairMeeter.StoredBody> rigidBodies = new ArrayList<>();
+        Collection<OneDimensionPairMeeter.StoredBody> nonPhysical = new ArrayList<>();
 
         RigidBodyIsland island = rigidBodyIsland.get();
         for (int i = 0; i < island.getSize(); i++) {
             RigidBody rigidBody = island.getRigidBody(i);
             if (rigidBody.getCollisionData().getPreCollisionShape()!=null) {
-                rigidBodies.add(rigidBody);
+                rigidBodies.add(new OneDimensionPairMeeter.StoredBody(rigidBody, rigidBody.getCollisionData().getPreCollisionShape().toData(rigidBody)));
             } else {
-                nonPhysical.add(rigidBody);
+                nonPhysical.add(new OneDimensionPairMeeter.StoredBody(rigidBody, null));
             }
         }
         oneDimensionOrderer.sort(rigidBodies);
-        for (RigidBody rigidBody : nonPhysical) {
+        for (OneDimensionPairMeeter.StoredBody rigidBody : nonPhysical) {
             oneDimensionPairMeeter.add(rigidBody);
         }
         for (OneDimensionOrderer.OneDimensionBody sortedOneDimensionBody : oneDimensionOrderer.getSortedOneDimensionBodies()) {

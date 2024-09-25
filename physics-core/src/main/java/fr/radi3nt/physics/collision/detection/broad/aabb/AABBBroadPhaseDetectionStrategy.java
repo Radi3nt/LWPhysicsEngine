@@ -1,17 +1,15 @@
 package fr.radi3nt.physics.collision.detection.broad.aabb;
 
-import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.AABB;
-import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.mapping.AxisMapping;
-import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.SetAABB;
 import fr.radi3nt.physics.collision.detection.broad.BroadPhaseDetectionStrategy;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.AABB;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.SetAABB;
+import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.mapping.AxisMapping;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapTest;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapXTest;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapYTest;
 import fr.radi3nt.physics.collision.detection.broad.aabb.overlap.OverlapZTest;
 import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionPair;
-import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
-import fr.radi3nt.physics.collision.detection.narrow.processed.ProcessedShapeProvider;
-import fr.radi3nt.physics.core.TransformedObject;
+import fr.radi3nt.physics.collision.shape.pre.PreCollisionData;
 
 public class AABBBroadPhaseDetectionStrategy implements BroadPhaseDetectionStrategy {
 
@@ -30,12 +28,12 @@ public class AABBBroadPhaseDetectionStrategy implements BroadPhaseDetectionStrat
 
     @Override
     public boolean canSkip(PreCollisionPair pair) {
-        return canSkip(pair.getShapeA(), pair.getShapeB(), pair.getBodyA(), pair.getBodyB());
+        return canSkip(pair.getShapeA(), pair.getShapeB());
     }
 
-    private boolean canSkip(PreCollisionShape shapeA, PreCollisionShape shapeB, TransformedObject bodyA, TransformedObject bodyB) {
-        aabbA.copy(shapeA.getBoundingBox(bodyA));
-        aabbB.copy(shapeB.getBoundingBox(bodyB));
+    private boolean canSkip(PreCollisionData shapeA, PreCollisionData shapeB) {
+        aabbA.copy(shapeA.getBoundingBox());
+        aabbB.copy(shapeB.getBoundingBox());
 
         boolean canSkip = false;
         for (OverlapTest overlapTest : overlapTests) {

@@ -3,6 +3,7 @@ package fr.radi3nt.physics.collision.detection.generators.generator;
 import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionPair;
 import fr.radi3nt.physics.collision.shape.DuoCollisionShape;
+import fr.radi3nt.physics.collision.shape.pre.PreCollisionData;
 import fr.radi3nt.physics.collision.shape.shapes.CollisionShape;
 import fr.radi3nt.physics.core.state.RigidBody;
 
@@ -20,11 +21,14 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
     }
 
     @Override
-    public void pair(List<GeneratedContactPair> pairList, RigidBody a, RigidBody b) {
+    public void pair(List<GeneratedContactPair> pairList, RigidBody a, RigidBody b, PreCollisionData aData, PreCollisionData bData) {
         if ((a.isStatic() && b.isStatic()) || a.getCollisionData().cannotCollide(b) || b.getCollisionData().cannotCollide(a))
             return;
 
         PreCollisionPair pair = new PreCollisionPair(a, b);
+
+        if (aData!=null && bData!=null && canSkipCollision.test(pair.from(aData, bData)))
+            return;
 
         DuoCollisionShape[] objectsA = a.getCollisionData().getCollisionShape(b);
         DuoCollisionShape[] objectsB = b.getCollisionData().getCollisionShape(a);

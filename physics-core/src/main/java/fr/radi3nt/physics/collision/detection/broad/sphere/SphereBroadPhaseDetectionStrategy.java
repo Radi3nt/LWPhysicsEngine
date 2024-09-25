@@ -4,8 +4,7 @@ import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.detection.broad.BroadPhaseDetectionStrategy;
 import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionPair;
-import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
-import fr.radi3nt.physics.core.TransformedObject;
+import fr.radi3nt.physics.collision.shape.pre.PreCollisionData;
 
 public class SphereBroadPhaseDetectionStrategy implements BroadPhaseDetectionStrategy {
 
@@ -13,12 +12,12 @@ public class SphereBroadPhaseDetectionStrategy implements BroadPhaseDetectionStr
 
     @Override
     public boolean canSkip(PreCollisionPair preCollisionPair) {
-        return canSkip(preCollisionPair.getShapeA(), preCollisionPair.getShapeB(), preCollisionPair.getBodyA(), preCollisionPair.getBodyB());
+        return canSkip(preCollisionPair.getShapeA(), preCollisionPair.getShapeB());
     }
 
-    private boolean canSkip(PreCollisionShape shapeA, PreCollisionShape shapeB, TransformedObject bodyA, TransformedObject bodyB) {
-        BoundingSphere sphereA = shapeA.getBoundingSphere(bodyA);
-        BoundingSphere sphereB = shapeB.getBoundingSphere(bodyB);
+    private boolean canSkip(PreCollisionData shapeA, PreCollisionData shapeB) {
+        BoundingSphere sphereA = shapeA.getBoundingSphere();
+        BoundingSphere sphereB = shapeB.getBoundingSphere();
         Vector3f shapeAPos = sphereA.getPosition();
         Vector3f shapeBPos = sphereB.getPosition();
 

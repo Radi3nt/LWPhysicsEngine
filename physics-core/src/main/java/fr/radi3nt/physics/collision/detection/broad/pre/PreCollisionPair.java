@@ -1,13 +1,14 @@
 package fr.radi3nt.physics.collision.detection.broad.pre;
 
+import fr.radi3nt.physics.collision.shape.pre.PreCollisionData;
 import fr.radi3nt.physics.core.TransformedObject;
 
 public class PreCollisionPair {
 
     private final TransformedObject bodyA;
     private final TransformedObject bodyB;
-    private PreCollisionShape shapeA;
-    private PreCollisionShape shapeB;
+    private PreCollisionData shapeA;
+    private PreCollisionData shapeB;
 
     public PreCollisionPair(TransformedObject bodyA, TransformedObject bodyB) {
         this.bodyA = bodyA;
@@ -23,16 +24,22 @@ public class PreCollisionPair {
     }
 
     public PreCollisionPair from(PreCollisionHolder objA, PreCollisionHolder objB) {
-        setShapeA(objA.getPreCollisionShape());
-        setShapeB(objB.getPreCollisionShape());
+        setShapeA(objA.getPreCollisionShape().toData(bodyA));
+        setShapeB(objB.getPreCollisionShape().toData(bodyB));
         return this;
     }
 
-    public void setShapeA(PreCollisionShape shapeA) {
+    public PreCollisionPair from(PreCollisionData objA, PreCollisionData objB) {
+        setShapeA(objA);
+        setShapeB(objB);
+        return this;
+    }
+
+    public void setShapeA(PreCollisionData shapeA) {
         this.shapeA = shapeA;
     }
 
-    public void setShapeB(PreCollisionShape shapeB) {
+    public void setShapeB(PreCollisionData shapeB) {
         this.shapeB = shapeB;
     }
 
@@ -44,11 +51,19 @@ public class PreCollisionPair {
         return bodyB;
     }
 
-    public PreCollisionShape getShapeA() {
+    public PreCollisionData getShapeA() {
         return shapeA;
     }
 
-    public PreCollisionShape getShapeB() {
+    public PreCollisionData getShapeB() {
         return shapeB;
+    }
+
+    public void setShapeA(PreCollisionShape preCollisionShape) {
+        setShapeA(preCollisionShape.toData(bodyA));
+    }
+
+    public void setShapeB(PreCollisionShape preCollisionShape) {
+        setShapeB(preCollisionShape.toData(bodyB));
     }
 }

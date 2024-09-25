@@ -2,7 +2,6 @@ package fr.radi3nt.physics.collision.detection.generators.tools;
 
 import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.mapping.AxisMapping;
 import fr.radi3nt.physics.collision.detection.generators.provider.OneDimensionProvider;
-import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,9 +16,9 @@ public class OneDimensionOrderer {
         this.oneDimensionProvider = oneDimensionProvider;
     }
 
-    public void sort(Collection<RigidBody> rigidBodies) {
-        for (RigidBody rigidBody : rigidBodies) {
-            AxisMapping axisMapping = oneDimensionProvider.map(rigidBody, rigidBody.getCollisionData().getPreCollisionShape());
+    public void sort(Collection<OneDimensionPairMeeter.StoredBody> rigidBodies) {
+        for (OneDimensionPairMeeter.StoredBody rigidBody : rigidBodies) {
+            AxisMapping axisMapping = oneDimensionProvider.map(rigidBody.body, rigidBody.data);
             sortedOneDimensionBodies.add(new OneDimensionBody(rigidBody, axisMapping.getMax(), true));
             sortedOneDimensionBodies.add(new OneDimensionBody(rigidBody, axisMapping.getMin(), false));
         }
@@ -38,17 +37,17 @@ public class OneDimensionOrderer {
 
     public static final class OneDimensionBody {
 
-        private final RigidBody rigidBody;
+        private final OneDimensionPairMeeter.StoredBody rigidBody;
         private final float value;
         private final boolean end;
 
-        public OneDimensionBody(RigidBody rigidBody, float value, boolean end) {
+        public OneDimensionBody(OneDimensionPairMeeter.StoredBody rigidBody, float value, boolean end) {
             this.rigidBody = rigidBody;
             this.value = value;
             this.end = end;
         }
 
-        public RigidBody getRigidBody() {
+        public OneDimensionPairMeeter.StoredBody getRigidBody() {
             return rigidBody;
         }
 
