@@ -22,8 +22,8 @@ public class InstantConstraintList extends SetConstraintList {
 
     @Override
     public List<Constraint> getConstraints() {
-        List<Constraint> constraints = new ArrayList<>(super.getConstraints());
-        constraints.addAll(stepConstraints);
+        List<Constraint> constraints = new ArrayList<>(stepConstraints);
+        constraints.addAll(super.getConstraints());
         return Collections.unmodifiableList(constraints);
     }
 }

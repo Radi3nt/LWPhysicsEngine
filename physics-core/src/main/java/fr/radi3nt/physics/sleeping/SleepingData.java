@@ -7,9 +7,15 @@ public interface SleepingData {
 
     void ode(Vector3f force, Vector3f torque);
     void step(DynamicsData data);
+    void wakeUpIfNeeded(DynamicsData data);
     void wakeUp();
     boolean isSleeping();
     boolean isAwoken();
 
     boolean shouldWakeUp(DynamicsData a);
+
+    default void wakeUpIfNeeded() {
+        if (isSleeping())
+            wakeUp();
+    }
 }

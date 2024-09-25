@@ -4,6 +4,7 @@ import fr.radi3nt.maths.components.advanced.matrix.Matrix3x3;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.contact.manifold.contact.ContactPoint;
+import fr.radi3nt.physics.collision.contact.manifold.contact.ContactType;
 import fr.radi3nt.physics.collision.response.CollisionContactSolver;
 import fr.radi3nt.physics.core.state.DynamicsData;
 import fr.radi3nt.physics.sleeping.SleepingData;
@@ -14,6 +15,7 @@ import static java.lang.Math.abs;
 
 public class SequentialImpulseCollisionContactSolver implements CollisionContactSolver {
 
+    private static final float WAKE_THRESHOLD = 1e-3f;
     private final int iterationCount;
 
     public SequentialImpulseCollisionContactSolver(int iterationCount) {
@@ -91,11 +93,9 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             Vector3f ra = contactPoint.rA;
             Vector3f rb = contactPoint.rB;
 
-            float impulseForce = relativeVel;
-            float numerator = -((epsilon) * impulseForce);
+            float numerator = -((epsilon) * relativeVel);
 
-
-            Vector3f frictionVec = getFrictionVec(a, b, normal, relativeVelVec, impulseForce);
+            Vector3f frictionVec = getFrictionVec(a, b, normal, relativeVelVec, relativeVel);
             Vector3f dir = normal.duplicate().add(frictionVec);
 
             float j = numerator / staticValues[i];
@@ -129,31 +129,50 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
 
     private void removeOverlap(DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB, ContactPoint[] contactPoints, float[] initialRelativeVel, float[] staticValues) {
         float[] accumulatedImpulses = new float[initialRelativeVel.length];
+
+        resolveOverlap(a, b, contactPoints, staticValues, accumulatedImpulses);
+
+        for (int i = 0; i < accumulatedImpulses.length; i++) {
+            float accumulatedImpulse = accumulatedImpulses[i];
+            float relativeVel = initialRelativeVel[i];
+            if (accumulatedImpulse > WAKE_THRESHOLD && ContactType.fromDot(relativeVel, ContactPoint.THRESHOLD)==ContactType.COLLIDING) {
+                sleepA.wakeUpIfNeeded(a);
+                if (!sleepA.isSleeping())
+                    sleepB.wakeUpIfNeeded();
+                sleepB.wakeUpIfNeeded(b);
+                if (!sleepB.isSleeping())
+                    sleepA.wakeUpIfNeeded();
+            }
+        }
+    }
+
+    private void resolveOverlap(DynamicsData a, DynamicsData b, ContactPoint[] contactPoints, float[] staticValues, float[] accumulatedImpulses) {
         for (int currentIteration = 0; currentIteration < iterationCount; currentIteration++) {
+            boolean atLeastOneContactCollided = false;
+
             for (ContactPoint contactPoint : contactPoints) {
                 contactPoint.computeRealVelocity();
+
+                if (contactPoint.getContactType()== ContactType.COLLIDING)
+                    atLeastOneContactCollided = true;
             }
-            boolean atLeastOneContactCollided = false;
+
+            if (!atLeastOneContactCollided)
+                return;
+
             for (int i = 0; i < contactPoints.length; i++) {
                 ContactPoint contactPoint = contactPoints[i];
-                float relativeVel = initialRelativeVel[i];
-                if (relativeVel >= 0)
-                    continue;
-
-                sleepA.wakeUp();
-                sleepB.wakeUp();
-
-                atLeastOneContactCollided = true;
+                float impulseForce = contactPoint.getRelativeVelocityAlongNormal();
 
                 Vector3f normal = contactPoint.normal;
 
                 Vector3f ra = contactPoint.rA;
                 Vector3f rb = contactPoint.rB;
 
-                float impulseForce = contactPoint.getRelativeVelocityAlongNormal();
                 float numerator = -(impulseForce);
 
-                Vector3f dir = normal.duplicate().add(getFrictionVec(a, b, normal, contactPoint.getRelativeVelocityVec(), impulseForce));
+                Vector3f dir = normal.duplicate();
+                dir.add(getFrictionVec(a, b, normal, contactPoint.getRelativeVelocityVec(), impulseForce));
 
                 float j = numerator / staticValues[i];
                 float force = j / (iterationCount);
@@ -161,6 +180,8 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
                 accumulatedImpulses[i] = Math.max(force+oldAccumulatedImpulse, 0);
 
                 float difference = accumulatedImpulses[i]-oldAccumulatedImpulse;
+                if (difference==0)
+                    continue;
 
                 Vector3f fullImpulse = dir.duplicate().mul(difference);
 
@@ -170,8 +191,6 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
                 a.addLinearImpulse(fullImpulse.duplicate().negate());
                 a.addAngularImpulse(ra.duplicate().cross(fullImpulse.duplicate().negate()));
             }
-            if (!atLeastOneContactCollided)
-                return;
         }
     }
 

@@ -29,8 +29,6 @@ public class SimultaneousImpulseRestingContactSolver implements CollisionContact
 
             for (ContactPoint contactPoint : persistentManifold.getContactPoints(bodyA.getDynamicsData(), bodyB.getDynamicsData())) {
                 contactPoint.computeRealVelocity();
-                if (contactPoint.isSeparatingContact())
-                    continue;
                 noPenetrationConstraintProvider.addConstraint(constraints, persistentManifold, contactPoint);
             }
         }
