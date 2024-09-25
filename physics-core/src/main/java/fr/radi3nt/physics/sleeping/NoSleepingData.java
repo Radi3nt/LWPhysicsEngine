@@ -21,6 +21,11 @@ public class NoSleepingData implements SleepingData {
     }
 
     @Override
+    public void wakeUpIfNeeded(DynamicsData data) {
+
+    }
+
+    @Override
     public void wakeUp() {
 
     }

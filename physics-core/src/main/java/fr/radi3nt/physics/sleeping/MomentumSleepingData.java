@@ -62,6 +62,15 @@ public class MomentumSleepingData implements SleepingData {
         }
     }
 
+    @Override
+    public void wakeUpIfNeeded(DynamicsData data) {
+        if (!isSleeping())
+            return;
+        if (shouldKeepSleeping(data))
+            return;
+        wakeUp();
+    }
+
     private void actuallyWake() {
         stepStatic=0;
         lastForce = null;

@@ -76,6 +76,14 @@ public class PositionSleepingData implements SleepingData {
         }
     }
 
+    @Override
+    public void wakeUpIfNeeded(DynamicsData data) {
+        if (!isSleeping())
+            return;
+        if (shouldWakeUp(data) || (data.getLinearMomentum().lengthSquared()!=0 || data.getAngularMomentum().lengthSquared()!=0))
+            wakeUp();
+    }
+
     private void sleep() {
         sleeping = true;
     }
