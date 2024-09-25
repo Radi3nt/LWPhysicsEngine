@@ -9,7 +9,6 @@ public interface ConstraintData {
 
     float[] getCorrections();
     StateConstraint[] getImpulses();
-    StateConstraint[] getForces();
 
     DriftParameters[] getDriftParameters();
     CachingModuleProvider getCachingConstraintModules();

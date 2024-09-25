@@ -5,6 +5,6 @@ import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 public interface Constraint {
 
-    ConstraintData compute(RigidBodyIsland island);
+    ConstraintData[] compute(RigidBodyIsland island);
     RigidBodyIndex[] getConcernedBodies();
 }

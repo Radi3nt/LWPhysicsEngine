@@ -5,10 +5,7 @@ import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.arbitrary.VectorNf;
 import fr.radi3nt.maths.components.arbitrary.vector.ArrayVectorNf;
 import fr.radi3nt.maths.components.vectors.Vector3f;
-import fr.radi3nt.physics.constraints.constraint.Constraint;
-import fr.radi3nt.physics.constraints.constraint.ConstraintData;
-import fr.radi3nt.physics.constraints.constraint.DriftParameters;
-import fr.radi3nt.physics.constraints.constraint.StateConstraint;
+import fr.radi3nt.physics.constraints.constraint.*;
 import fr.radi3nt.physics.constraints.constraint.caching.provider.CachingModuleProvider;
 import fr.radi3nt.physics.constraints.constraint.index.IdentifiedDynamicsData;
 import fr.radi3nt.physics.constraints.constraint.index.RigidBodyIndex;
@@ -51,11 +48,11 @@ public class FixedPositionConstraint implements Constraint {
     }
 
     @Override
-    public ConstraintData compute(RigidBodyIsland island) {
+    public ConstraintData[] compute(RigidBodyIsland island) {
         IdentifiedDynamicsData identifiedData = rigidBodyId.getIdentifiedData(island);
         if (identifiedData==null)
             return null;
-        return new FixedPositionConstraintData(identifiedData);
+        return new FixedPositionConstraintData[]{new FixedPositionConstraintData(identifiedData)};
     }
 
     @Override
@@ -63,7 +60,7 @@ public class FixedPositionConstraint implements Constraint {
         return new RigidBodyIndex[] {rigidBodyId};
     }
 
-    public class FixedPositionConstraintData implements ConstraintData {
+    public class FixedPositionConstraintData implements ForceConstraintData {
 
         private final Vector3f angularVelocity;
         private final Vector3f derivedBodySpaceAnchor;
