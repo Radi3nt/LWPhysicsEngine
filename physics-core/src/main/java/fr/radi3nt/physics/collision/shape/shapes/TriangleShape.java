@@ -3,7 +3,6 @@ package fr.radi3nt.physics.collision.shape.shapes;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.AABB;
-import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.OBBDynamicAABB;
 import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.VerticesAABB;
 import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
 import fr.radi3nt.physics.collision.detection.broad.sphere.BoundingSphere;
@@ -17,8 +16,8 @@ public class TriangleShape implements CollisionShape, PreCollisionShape {
     private final boolean oneWay, edgeless;
     private final Vector3f vertex1, vertex2, vertex3;
 
-    private final Vector3f center;
-    private final float radius;
+    private Vector3f center;
+    private float radius;
 
     public TriangleShape(boolean oneWay, boolean edgeless, Vector3f vertex1, Vector3f vertex2, Vector3f vertex3) {
         this.oneWay = oneWay;
@@ -26,10 +25,6 @@ public class TriangleShape implements CollisionShape, PreCollisionShape {
         this.vertex1 = vertex1;
         this.vertex2 = vertex2;
         this.vertex3 = vertex3;
-
-
-        center = getCircumcenter();
-        radius = center.duplicate().sub(vertex1).length();
     }
 
     public Vector3f getCircumcenter() {
@@ -61,6 +56,10 @@ public class TriangleShape implements CollisionShape, PreCollisionShape {
 
     @Override
     public BoundingSphere getBoundingSphere(TransformedObject object) {
+        if (center==null) {
+            center = getCircumcenter();
+            radius = center.duplicate().sub(vertex1).length();
+        }
         Vector3f circumcenter = center.duplicate();
         object.getRotation().transform(circumcenter);
         return SetBoundingSphere.from(object, circumcenter, radius);
