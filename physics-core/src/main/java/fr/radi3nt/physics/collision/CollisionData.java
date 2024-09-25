@@ -10,12 +10,13 @@ import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 
 public class CollisionData {
 
     private final CollisionShapeProvider collisionShapeProvider;
-    private final Collection<PersistentManifold> currentCollisions = new ArrayList<>();
+    private final Collection<PersistentManifold> currentCollisions = new ConcurrentLinkedQueue<>();
     private final Predicate<RigidBody> canCollide;
     private long currentStep;
     private boolean empty = false;

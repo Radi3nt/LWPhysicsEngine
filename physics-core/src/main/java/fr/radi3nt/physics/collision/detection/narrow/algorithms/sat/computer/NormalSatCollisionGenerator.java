@@ -11,7 +11,6 @@ import java.util.List;
 
 public class NormalSatCollisionGenerator implements SatCollisionGenerator {
 
-    private final NormalSatCollisionDetector normalSatCollisionDetector = new NormalSatCollisionDetector();
     private final NormalManifoldPointBuilder manifoldPointBuilder;
 
     public NormalSatCollisionGenerator() {
@@ -20,6 +19,7 @@ public class NormalSatCollisionGenerator implements SatCollisionGenerator {
 
     @Override
     public List<ManifoldPoint> test(GeneratedContactPair contactPair, SatProcessedShape sa, SatProcessedShape sb) {
+        NormalSatCollisionDetector normalSatCollisionDetector = new NormalSatCollisionDetector();
         boolean collision = normalSatCollisionDetector.testCollision(contactPair, sa, sb);
         if (!collision)
             return Collections.emptyList();

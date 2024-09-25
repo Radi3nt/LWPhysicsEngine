@@ -3,11 +3,15 @@ package fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.ma
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
-import fr.radi3nt.physics.collision.contact.manifold.*;
+import fr.radi3nt.physics.collision.contact.manifold.ManifoldPoint;
+import fr.radi3nt.physics.collision.contact.manifold.PointIndex;
 import fr.radi3nt.physics.collision.contact.manifold.manifolds.clip.ClipManifoldPoint;
 import fr.radi3nt.physics.collision.contact.manifold.manifolds.edges.EdgeManifoldPoint;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.NormalSatCollisionDetector;
-import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.*;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.AbstractClippingSurface;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.ClipPlane;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.ClipPlanes;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.Edge;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.info.SatEdge;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.info.SatFace;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.SatProcessedShape;
@@ -24,7 +28,7 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
 
     private static final float MERGE_THRESHOLD = 2e-2f;
     private static final float EPSILON = 1e-1f;
-    private final Vector3f cache = new SimpleVector3f();
+
 
     public NormalManifoldPointBuilder() {
     }
@@ -267,6 +271,8 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
         for (ManifoldPoint pairResult : pairResults) {
             pairResult.refresh(pair.objectA, pair.objectB);
         }
+
+        Vector3f cache = new SimpleVector3f();
 
         for (int i = 0; i < pairResults.size(); i++) {
             ManifoldPoint manifold1 = pairResults.get(i);
