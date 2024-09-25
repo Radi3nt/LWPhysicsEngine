@@ -94,7 +94,7 @@ public class Simulation {
             return 0.115f;
         }
     });
-    public final TorqueDampForceCaster torqueDrag = new TorqueDampForceCaster(0.001f);
+    private final TorqueDampForceCaster torqueDrag = new TorqueDampForceCaster(0.001f);
     private final Collection<CachingProcessedShapeProvider<?>> cachingProviders = new ArrayList<>();
 
     public final ProcessedShapeProvider<SatProcessedShape> satShapeProvider;
@@ -103,7 +103,8 @@ public class Simulation {
     private long step;
 
     public Simulation() {
-        odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new ForceDataForceCaster(), new MassedVectorForceCaster(new SimpleVector3f(0, GRAVITY, 0), new SimpleVector3f()), airDrag, torqueDrag));
+        //odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new ForceDataForceCaster()));
+        odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new ForceDataForceCaster(), new SetMassedVectorForceCaster(new SimpleVector3f(0, GRAVITY, 0), new SimpleVector3f()), airDrag, torqueDrag));
         //odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new AttractionForceCaster(12, new SimpleVector3f())));
         //odeSolver = new IntegrateRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
         //odeSolver = new IntegratorOdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
