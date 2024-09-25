@@ -37,8 +37,8 @@ public class NoPenetrationConstraint implements Constraint {
     }
 
     @Override
-    public ConstraintData compute(RigidBodyIsland island) {
-        return new NoPenetrationConstraintData(attachedA.getIdentifiedData(island), attachedB.getIdentifiedData(island));
+    public ConstraintData[] compute(RigidBodyIsland island) {
+        return new NoPenetrationConstraintData[]{new NoPenetrationConstraintData(attachedA.getIdentifiedData(island), attachedB.getIdentifiedData(island))};
     }
 
     @Override
@@ -105,11 +105,6 @@ public class NoPenetrationConstraint implements Constraint {
             return new StateConstraint[] {
                     new StateConstraint(ids, states)
             };
-        }
-
-        @Override
-        public StateConstraint[] getForces() {
-            return new StateConstraint[0];
         }
 
         @Override

@@ -44,37 +44,39 @@ public class ListConstraintFiller implements ConstraintFiller {
 
         Collection<Constraint> currentConstraints = constraints.getConstraints();
         for (Constraint constraint : currentConstraints) {
-            ConstraintData constraintData = constraint.compute(island);
-            if (constraintData==null)
+            ConstraintData[] constraintDataArray = constraint.compute(island);
+            if (constraintDataArray==null)
                 continue;
 
-            CachingModuleProvider modules = constraintData.getCachingConstraintModules();
-            DriftParameters[] driftParameters = constraintData.getDriftParameters();
-            float[] currentMin = constraintData.getMin();
-            float[] currentMax = constraintData.getMax();
-            float[] currentC = constraintData.getCorrections();
+            for (ConstraintData constraintData : constraintDataArray) {
+                CachingModuleProvider modules = constraintData.getCachingConstraintModules();
+                DriftParameters[] driftParameters = constraintData.getDriftParameters();
+                float[] currentMin = constraintData.getMin();
+                float[] currentMax = constraintData.getMax();
+                float[] currentC = constraintData.getCorrections();
 
-            StateConstraint[] impulses = constraintData.getImpulses();
-            for (int localConstraintIndex = 0, impulsesLength = impulses.length; localConstraintIndex < impulsesLength; localConstraintIndex++) {
-                StateConstraint impulse = impulses[localConstraintIndex];
-                IdentifiedDynamicsData[] bodies = impulse.getConcernedBodies();
-                for (int localBodyIndex = 0, bodiesLength = bodies.length; localBodyIndex < bodiesLength; localBodyIndex++) {
-                    IdentifiedDynamicsData concernedBody = bodies[localBodyIndex];
-                    int sparseIndex = regularIndexToMatrixIndex(concernedBodies, concernedBody);
-                    VectorNf states = impulse.getStates()[localBodyIndex];
-                    sparseArbitraryMatrix.add(new SparseBlock(sparseIndex * STATE_STRIDE, constraintIndex, STATE_STRIDE, 1, vectorToArray(states)));
+                StateConstraint[] impulses = constraintData.getImpulses();
+                for (int localConstraintIndex = 0, impulsesLength = impulses.length; localConstraintIndex < impulsesLength; localConstraintIndex++) {
+                    StateConstraint impulse = impulses[localConstraintIndex];
+                    IdentifiedDynamicsData[] bodies = impulse.getConcernedBodies();
+                    for (int localBodyIndex = 0, bodiesLength = bodies.length; localBodyIndex < bodiesLength; localBodyIndex++) {
+                        IdentifiedDynamicsData concernedBody = bodies[localBodyIndex];
+                        int sparseIndex = regularIndexToMatrixIndex(concernedBodies, concernedBody);
+                        VectorNf states = impulse.getStates()[localBodyIndex];
+                        sparseArbitraryMatrix.add(new SparseBlock(sparseIndex * STATE_STRIDE, constraintIndex, STATE_STRIDE, 1, vectorToArray(states)));
+                    }
+
+                    min.add(currentMin[localConstraintIndex]);
+                    max.add(currentMax[localConstraintIndex]);
+                    c.add(currentC[localConstraintIndex]);
+
+                    DriftParameters currentDrift = driftParameters[localConstraintIndex];
+                    ks.add(currentDrift.ks);
+
+                    constraintModules.add(modules.get(localConstraintIndex));
+
+                    constraintIndex++;
                 }
-
-                min.add(currentMin[localConstraintIndex]);
-                max.add(currentMax[localConstraintIndex]);
-                c.add(currentC[localConstraintIndex]);
-
-                DriftParameters currentDrift = driftParameters[localConstraintIndex];
-                ks.add(currentDrift.ks);
-
-                constraintModules.add(modules.get(localConstraintIndex));
-
-                constraintIndex++;
             }
         }
 

@@ -41,8 +41,8 @@ public class FrictionConstraint implements Constraint {
     }
 
     @Override
-    public ConstraintData compute(RigidBodyIsland island) {
-        return new FrictionConstraintData(attachedA.getIdentifiedData(island), attachedB.getIdentifiedData(island));
+    public ConstraintData[] compute(RigidBodyIsland island) {
+        return new FrictionConstraintData[]{new FrictionConstraintData(attachedA.getIdentifiedData(island), attachedB.getIdentifiedData(island))};
     }
 
     @Override
@@ -121,11 +121,6 @@ public class FrictionConstraint implements Constraint {
                     new StateConstraint(ids, states1),
                     new StateConstraint(ids, states2)
             };
-        }
-
-        @Override
-        public StateConstraint[] getForces() {
-            return new StateConstraint[0];
         }
 
         @Override
