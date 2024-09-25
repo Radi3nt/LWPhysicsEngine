@@ -15,7 +15,7 @@ import java.util.List;
 public class PersistentManifold {
 
     private static final int MAX_CONTACT_POINTS = 4;
-    private static final float CONTACT_BREAK_NORMAL_THRESHOLD = 3e-2f;
+    private static final float CONTACT_BREAK_NORMAL_THRESHOLD = 2e-1f;
     private static final float CONTACT_BREAK_ORTHOGONAL_THRESHOLD = 3e-1f;
 
 
