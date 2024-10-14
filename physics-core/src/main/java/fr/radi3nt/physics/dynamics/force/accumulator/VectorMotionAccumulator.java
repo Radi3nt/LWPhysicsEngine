@@ -23,11 +23,13 @@ public class VectorMotionAccumulator implements MotionAccumulator {
         forceAndTorque.replaceAll(ignored -> new SimpleVector3f());
     }
 
+    @Override
     public void setMotion(MotionResult result, int i) {
         forceAndTorque.set(i*2, result.getLinear());
         forceAndTorque.set(i*2+1, result.getAngular());
     }
 
+    @Override
     public void getMotion(MotionResult result, int i) {
         result.set(forceAndTorque.get(i*2), forceAndTorque.get(i*2+1));
     }

@@ -3,22 +3,19 @@ package fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk;
 import fr.radi3nt.maths.Maths;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 
-import java.util.Arrays;
-import java.util.Vector;
-
 public class GJKSimplex {
 
     private static final int POINT_DIMENSION = 0;
     private static final int LINE_DIMENSION = 1;
     private static final int TRIANGLE_DIMENSION = 2;
     private static final int TETRAHEDRON_DIMENSION = 3;
-    private final Vector<GjkPoint> points;
+    private final PointBag points;
 
     public GJKSimplex() {
-        points = new Vector<>(4);
+        points = new PointBag();
     }
 
-    public GJKSimplex(Vector<GjkPoint> points) {
+    public GJKSimplex(PointBag points) {
         this.points = points;
     }
 
@@ -130,17 +127,17 @@ public class GJKSimplex {
 
         if (sameDirection(abc, ao) || abc.lengthSquared()==0) {
             points.clear();
-            points.addAll(Arrays.asList(aP, bP, cP));
+            points.addAll(aP, bP, cP);
             return triangle(direction);
         }
         if (sameDirection(acd, ao)) {
             points.clear();
-            points.addAll(Arrays.asList(aP, cP, dP));
+            points.addAll(aP, cP, dP);
             return triangle(direction);
         }
         if (sameDirection(adb, ao)) {
             points.clear();
-            points.addAll(Arrays.asList(aP, dP, bP));
+            points.addAll(aP, dP, bP);
             return triangle(direction);
         }
 
@@ -168,24 +165,24 @@ public class GJKSimplex {
         if (sameDirection(abc.duplicate().cross(ac), ao) || abc.lengthSquared()==0) {
             if (sameDirection(ac, ao)) {
                 points.clear();
-                points.addAll(Arrays.asList(aP, cP));
+                points.addAll(aP, cP);
                 direction.copy(ac.duplicate().cross(ao).cross(ac));
             } else {
                 points.clear();
-                points.addAll(Arrays.asList(aP, bP));
+                points.addAll(aP, bP);
                 return lineOld(direction);
             }
         } else {
             if (sameDirection(ab.duplicate().cross(abc), ao)) {
                 points.clear();
-                points.addAll(Arrays.asList(aP, bP));
+                points.addAll(aP, bP);
                 return lineOld(direction);
             } else {
                 if (sameDirection(abc, ao)) {
                     direction.copy(abc);
                 } else {
                     points.clear();
-                    points.addAll(Arrays.asList(aP, cP, bP));
+                    points.addAll(aP, cP, bP);
                     direction.copy(abc.duplicate().negate());
                 }
             }
@@ -196,8 +193,11 @@ public class GJKSimplex {
     }
 
     public boolean line(Vector3f direction) {
-        Vector3f a = points.get(0).getPoint();
-        Vector3f b = points.get(1).getPoint();
+        GjkPoint aP = points.get(0);
+        GjkPoint bP = points.get(1);
+
+        Vector3f a = aP.getPoint();
+        Vector3f b = bP.getPoint();
 
         Vector3f ab = b.duplicate().sub(a);
         Vector3f ao = a.duplicate().negate();
@@ -208,11 +208,13 @@ public class GJKSimplex {
             if (dot/ab.lengthSquared()<1) {
                 direction.copy(ab.duplicate().cross(ao).cross(ab));
             } else {
-                points.remove(0);
+                points.clear();
+                points.addAll(bP);
                 direction.copy(b.duplicate().negate());
             }
         } else {
-            points.remove(1);
+            points.clear();
+            points.addAll(aP);
             direction.copy(ao);
         }
 
@@ -221,8 +223,12 @@ public class GJKSimplex {
 
 
     public boolean lineOld(Vector3f direction) {
-        Vector3f a = points.get(0).getPoint();
-        Vector3f b = points.get(1).getPoint();
+        GjkPoint aP = points.get(0);
+        GjkPoint bP = points.get(1);
+
+
+        Vector3f a = aP.getPoint();
+        Vector3f b = bP.getPoint();
 
         Vector3f ab = b.duplicate().sub(a);
         Vector3f ao = a.duplicate().negate();
@@ -232,7 +238,8 @@ public class GJKSimplex {
         if (dot>0) {
             direction.copy(ab.duplicate().cross(ao).cross(ab));
         } else {
-            points.remove(1);
+            points.clear();
+            points.addAll(aP);
             direction.copy(ao);
         }
 
@@ -263,15 +270,15 @@ public class GJKSimplex {
     }
 
     public void addFront(GjkPoint supportPoint) {
-        points.insertElementAt(supportPoint, 0);
+        points.insertAsFirstElement(supportPoint);
     }
 
-    public Vector<GjkPoint> getPoints() {
+    public PointBag getPoints() {
         return points;
     }
 
     public GJKSimplex duplicate() {
-        return new GJKSimplex((Vector<GjkPoint>) points.clone());
+        return new GJKSimplex(points.clone());
     }
 
     public boolean alreadyHasPoint(GjkPoint supportPoint) {

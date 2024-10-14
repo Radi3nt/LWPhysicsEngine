@@ -8,4 +8,5 @@ public interface MotionAccumulator {
     void addMotion(MotionResult result, int i);
     void addToAll(MotionResult force);
 
+    void setSize(int size);
 }

@@ -15,7 +15,10 @@ import fr.radi3nt.physics.collision.detection.narrow.manifold.RegularManifoldCom
 import fr.radi3nt.physics.collision.detection.narrow.processed.ProcessedShapeProvider;
 import fr.radi3nt.physics.collision.shape.shapes.CollisionShape;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlgorithm {
 
@@ -52,7 +55,7 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
             lineCase(pairs, result, processedShapeA, processedShapeB, manifoldPoints);
         }
         if (result.collidingSimplex.isTriangle()) {
-            Vector<GjkPoint> points = result.collidingSimplex.getPoints();
+            PointBag points = result.collidingSimplex.getPoints();
             GjkPoint point1 = points.get(0);
             GjkPoint point2 = points.get(1);
             GjkPoint point3 = points.get(2);
@@ -145,7 +148,7 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
         return regularManifoldComputer.compute(manifoldCache, pairs, manifoldPoints, currentStep);
     }
 
-    private static void pointTriangleCase(GeneratedContactPair pairs, boolean isPointFaceA, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Vector3f pointOnFace, Vector3f faceNormal, Vector3f firstPointTri, Collection<ManifoldPoint> manifoldPoints, Vector<GjkPoint> points) {
+    private static void pointTriangleCase(GeneratedContactPair pairs, boolean isPointFaceA, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Vector3f pointOnFace, Vector3f faceNormal, Vector3f firstPointTri, Collection<ManifoldPoint> manifoldPoints, PointBag points) {
         float realDistance = (isPointFaceA ? -processedShapeA.transformDistance(0) : processedShapeB.transformDistance(0));
         Vector3f realPoint = pointOnFace.duplicate().add(faceNormal.duplicate().mul(realDistance));
 
@@ -186,7 +189,7 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
         manifoldPoints.add(new GJKManifoldPoint(pairs.objectA.toLocalSpace(aCorrected), pairs.objectB.toLocalSpace(bCorrected), normal, collidingSimplex));
     }
 
-    private static GjkIndexedPoint[] buildIndices(Vector<GjkPoint> points) {
+    private static GjkIndexedPoint[] buildIndices(PointBag points) {
 
         List<GjkIndexedPoint> gjkPoints = new ArrayList<>();
         for (GjkPoint point : points) {

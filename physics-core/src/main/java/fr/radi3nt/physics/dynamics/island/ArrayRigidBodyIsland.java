@@ -21,6 +21,13 @@ public class ArrayRigidBodyIsland implements RigidBodyIsland, EditableRigidBodyI
         rigidBodies[index] = rigidBody;
     }
 
+    public void copy(RigidBodyIsland island) {
+        setSize(island.getSize());
+        for (int i = 0; i < rigidBodies.length; i++) {
+            rigidBodies[i] = island.getRigidBody(i);
+        }
+    }
+
     public void setSize(int size) {
         rigidBodies = new RigidBody[size];
     }

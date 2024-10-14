@@ -1,8 +1,9 @@
 package fr.radi3nt.physics.dynamics.ode.rk4;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
+import fr.radi3nt.physics.dynamics.force.accumulator.ArrayMotionAccumulator;
+import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
 import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
-import fr.radi3nt.physics.dynamics.force.accumulator.VectorMotionAccumulator;
 import fr.radi3nt.physics.dynamics.force.caster.ForceCaster;
 import fr.radi3nt.physics.dynamics.island.ArrayRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
@@ -15,12 +16,13 @@ public abstract class RungeKutta4OdeSolver implements OdeSolver {
     private final ForceCaster forceCaster;
     protected final Integrator integrator;
 
-    protected final VectorMotionAccumulator k1 = new VectorMotionAccumulator();
-    protected final VectorMotionAccumulator k2 = new VectorMotionAccumulator();
-    protected final VectorMotionAccumulator k3 = new VectorMotionAccumulator();
-    protected final VectorMotionAccumulator k4 = new VectorMotionAccumulator();
-    protected final VectorMotionAccumulator kR = new VectorMotionAccumulator();
+    protected final MotionAccumulator k1 = new ArrayMotionAccumulator();
+    protected final MotionAccumulator k2 = new ArrayMotionAccumulator();
+    protected final MotionAccumulator k3 = new ArrayMotionAccumulator();
+    protected final MotionAccumulator k4 = new ArrayMotionAccumulator();
+    protected final MotionAccumulator kR = new ArrayMotionAccumulator();
 
+    protected final ArrayRigidBodyIsland main = new ArrayRigidBodyIsland();
     protected final ArrayRigidBodyIsland q1 = new ArrayRigidBodyIsland();
     protected final ArrayRigidBodyIsland q2 = new ArrayRigidBodyIsland();
     protected final ArrayRigidBodyIsland q3 = new ArrayRigidBodyIsland();
@@ -35,30 +37,32 @@ public abstract class RungeKutta4OdeSolver implements OdeSolver {
 
     @Override
     public RigidBodyIsland integrate(RigidBodyIsland rigidBodyIsland, float dt) {
+        main.copy(rigidBodyIsland);
+
         int size = rigidBodyIsland.getSize();
         resetForceAccumulator(size);
 
-        IntegratorOdeSolver.cast(forceCaster, k1, rigidBodyIsland, 0);
+        IntegratorOdeSolver.cast(forceCaster, k1, main, 0);
 
-        integrator.integrate(rigidBodyIsland, q1, k1, dt/2f);
+        integrator.integrate(main, q1, k1, dt/2f);
         IntegratorOdeSolver.cast(forceCaster, k2, q1, dt/2);
 
-        integrator.integrate(rigidBodyIsland, q2, k2, dt/2f);
+        integrator.integrate(main, q2, k2, dt/2f);
         IntegratorOdeSolver.cast(forceCaster, k3, q2, dt/2);
 
-        integrator.integrate(rigidBodyIsland, q3, k3, dt);
+        integrator.integrate(main, q3, k3, dt);
         IntegratorOdeSolver.cast(forceCaster, k4, q3, dt);
 
-        forceCaster.step(rigidBodyIsland, dt);
+        forceCaster.step(main, dt);
 
-        combineResults(rigidBodyIsland, dt);
+        combineResults(main, dt);
 
         return result;
     }
 
     protected abstract void combineResults(RigidBodyIsland rigidBodyIsland, float dt);
 
-    protected void addToForces(MotionResult forceResult, VectorMotionAccumulator k, Vector3f cumulatedForce, Vector3f cumulatedTorque, int i, float weight) {
+    protected void addToForces(MotionResult forceResult, MotionAccumulator k, Vector3f cumulatedForce, Vector3f cumulatedTorque, int i, float weight) {
         k.getMotion(forceResult, i);
         cumulatedForce.add(forceResult.getLinear().mul(weight));
         cumulatedTorque.add(forceResult.getAngular().mul(weight));

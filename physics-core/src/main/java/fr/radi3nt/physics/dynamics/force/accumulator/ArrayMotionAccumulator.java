@@ -7,15 +7,25 @@ import java.util.Arrays;
 
 public class ArrayMotionAccumulator implements MotionAccumulator {
 
-    private final Vector3f[] forceAndTorque;
+    private Vector3f[] forceAndTorque;
 
     public ArrayMotionAccumulator(int islandSize) {
         this.forceAndTorque = new Vector3f[islandSize*2];
     }
 
+    public ArrayMotionAccumulator() {
+    }
+
     @Override
     public void empty() {
         Arrays.setAll(forceAndTorque, i -> new SimpleVector3f());
+    }
+
+    public void setSize(int size) {
+        this.forceAndTorque = new Vector3f[size*2];
+        for (int i = 0; i < this.forceAndTorque.length; i++) {
+            this.forceAndTorque[i] = new SimpleVector3f();
+        }
     }
 
     public void setMotion(MotionResult result, int i) {
