@@ -35,6 +35,10 @@ public class RigidBody implements TransformedObject {
         return new RigidBody(rigidBodyId, forceData, DynamicsData.from(dynamicsData.getBodyProperties(), newPosition, newOrientation, newLinearMomentum, newAngularMomentum), collisionData, sleepingData);
     }
 
+    public RigidBody preview(Vector3f newLinearMomentum, Vector3f newAngularMomentum) {
+        return new RigidBody(rigidBodyId, forceData, DynamicsData.from(dynamicsData.getBodyProperties(), dynamicsData.getPosition().duplicate(), dynamicsData.getRotation().duplicate(), newLinearMomentum, newAngularMomentum), collisionData, sleepingData);
+    }
+
     public RigidBody preview() {
         return new RigidBody(rigidBodyId, forceData, DynamicsData.from(dynamicsData), collisionData, sleepingData);
     }
