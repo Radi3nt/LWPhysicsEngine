@@ -16,11 +16,11 @@ public class DynamicsData implements TransformedObject {
     private Vector3f position;
     private Quaternion rotation;
 
-    private Vector3f linearMomentum;
-    private Vector3f angularMomentum;
+    private final Vector3f linearMomentum = new SimpleVector3f();
+    private final Vector3f angularMomentum = new SimpleVector3f();
 
-    private Vector3f linearVelocity;
-    private Vector3f angularVelocity;
+    private final Vector3f linearVelocity = new SimpleVector3f();
+    private final Vector3f angularVelocity = new SimpleVector3f();
 
     private Matrix3x3 iInv;
 
@@ -75,10 +75,10 @@ public class DynamicsData implements TransformedObject {
         DynamicsData data = new DynamicsData(dynamicsData.dynamicsProperties);
         data.position = dynamicsData.position.duplicate();
         data.rotation = dynamicsData.rotation.duplicate();
-        data.linearVelocity = dynamicsData.linearVelocity.duplicate();
-        data.angularVelocity = dynamicsData.angularVelocity.duplicate();
-        data.linearMomentum = dynamicsData.linearMomentum.duplicate();
-        data.angularMomentum = dynamicsData.angularMomentum.duplicate();
+        data.linearVelocity.copy(dynamicsData.linearVelocity);
+        data.angularVelocity.copy(dynamicsData.angularVelocity);
+        data.linearMomentum.copy(dynamicsData.linearMomentum);
+        data.angularMomentum.copy(dynamicsData.angularMomentum);
         data.iInv = dynamicsData.iInv.duplicate();
         return data;
     }
@@ -124,13 +124,13 @@ public class DynamicsData implements TransformedObject {
     }
 
     public void setLinearMomentum(Vector3f linearMomentum) {
-        this.linearMomentum = linearMomentum;
+        this.linearMomentum.copy(linearMomentum);
         computeLinearVelocity();
     }
 
     public void zeroLinearMomentum() {
-        this.linearMomentum = new SimpleVector3f();
-        this.linearVelocity = new SimpleVector3f();
+        this.linearMomentum.set(0, 0, 0);
+        this.linearVelocity.set(0, 0, 0);
     }
 
     public void addLinearImpulse(Vector3f impulse) {
@@ -151,16 +151,17 @@ public class DynamicsData implements TransformedObject {
     }
 
     private void computeLinearVelocity() {
-        this.linearVelocity = toLinearVelocity(linearMomentum);
+        this.linearVelocity.copy(toLinearVelocity(linearMomentum));
     }
 
     public void setAngularMomentum(Vector3f angularMomentum) {
-        this.angularMomentum = angularMomentum;
+        this.angularMomentum.copy(angularMomentum);
         computeAngularVelocity();
     }
 
     public void zeroAngularMomentum() {
-        this.angularMomentum = this.angularVelocity = new SimpleVector3f();
+        this.angularMomentum.set(0, 0, 0);
+        this.angularVelocity.set(0, 0, 0);
     }
 
     public void addAngularImpulse(Vector3f impulse) {
@@ -175,7 +176,7 @@ public class DynamicsData implements TransformedObject {
     }
 
     private void computeAngularVelocity() {
-        this.angularVelocity = toAngularVelocity(angularMomentum);
+        this.angularVelocity.copy(toAngularVelocity(angularMomentum));
     }
 
     public Vector3f getLinearMomentum() {
@@ -207,10 +208,10 @@ public class DynamicsData implements TransformedObject {
         this.rotation = data.rotation;
         this.iInv = data.iInv;
 
-        this.linearMomentum = data.linearMomentum;
-        this.angularMomentum = data.angularMomentum;
+        this.linearMomentum.copy(data.linearMomentum);
+        this.angularMomentum.copy(data.angularMomentum);
 
-        this.linearVelocity = data.linearVelocity;
-        this.angularVelocity = data.angularVelocity;
+        this.linearVelocity.copy(data.linearVelocity);
+        this.angularVelocity.copy(data.angularVelocity);
     }
 }
