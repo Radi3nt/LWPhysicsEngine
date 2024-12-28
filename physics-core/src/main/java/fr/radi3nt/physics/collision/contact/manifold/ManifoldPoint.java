@@ -40,7 +40,7 @@ public class ManifoldPoint {
     }
 
     public ContactPoint toContactPoint(DynamicsData a, DynamicsData b) {
-        return new ContactPoint(this, normalFromAToB.duplicate(), rA, rB, a, b);
+        return new ContactPoint(this, normalFromAToB.duplicate(), rA, rB, a, b, projectedDistance);
     }
 
     protected float replaces(ManifoldPoint other) {
