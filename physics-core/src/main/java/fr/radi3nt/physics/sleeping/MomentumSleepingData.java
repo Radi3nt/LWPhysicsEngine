@@ -5,7 +5,8 @@ import fr.radi3nt.physics.core.state.DynamicsData;
 
 public class MomentumSleepingData implements SleepingData {
 
-    private final float threshold;
+    private final float linearThreshold;
+    private final float angularThreshold;
     private final int stepRequiredToSleep;
 
     public int stepStatic;
@@ -16,8 +17,9 @@ public class MomentumSleepingData implements SleepingData {
     public boolean sleeping;
     public boolean askedWokeUp;
 
-    public MomentumSleepingData(float threshold, int stepRequiredToSleep) {
-        this.threshold = threshold;
+    public MomentumSleepingData(float linearThreshold, float angularThreshold, int stepRequiredToSleep) {
+        this.linearThreshold = linearThreshold;
+        this.angularThreshold = angularThreshold;
         this.stepRequiredToSleep = stepRequiredToSleep;
     }
 
@@ -26,11 +28,11 @@ public class MomentumSleepingData implements SleepingData {
         if (true)
             return;
 
-        if (lastForce==null || lastForce.duplicate().sub(force).lengthSquared()>=threshold*threshold) {
+        if (lastForce==null || lastForce.duplicate().sub(force).lengthSquared()>= linearThreshold * linearThreshold) {
             sleeping = false;
             lastForce = null;
             lastTorque = null;
-        } else if (lastTorque==null || lastTorque.duplicate().sub(torque).lengthSquared()>=threshold*threshold) {
+        } else if (lastTorque==null || lastTorque.duplicate().sub(torque).lengthSquared()>= linearThreshold * linearThreshold) {
             sleeping = false;
             lastForce = null;
             lastTorque = null;
@@ -109,6 +111,6 @@ public class MomentumSleepingData implements SleepingData {
     }
 
     private boolean shouldKeepSleeping(DynamicsData a) {
-        return a.getLinearVelocity().lengthSquared() <= threshold * threshold && a.getAngularVelocity().lengthSquared() <= threshold * threshold;
+        return a.getLinearVelocity().lengthSquared() <= linearThreshold * linearThreshold && a.getAngularVelocity().lengthSquared() <= angularThreshold * angularThreshold;
     }
 }
