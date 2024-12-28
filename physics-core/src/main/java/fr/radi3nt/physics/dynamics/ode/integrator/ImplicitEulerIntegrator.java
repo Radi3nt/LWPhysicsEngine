@@ -18,6 +18,11 @@ public class ImplicitEulerIntegrator implements Integrator {
         for (int i = 0; i < size; i++) {
             RigidBody currentBody = original.getRigidBody(i);
 
+            if (currentBody.isStatic()) {
+                resultIsland.setRigidBody(currentBody.preview(), i);
+                continue;
+            }
+
             Vector3f newPosition = Integration.integrateVector(currentBody.getDynamicsData().getLinearVelocity().duplicate(), currentBody.getDynamicsData().getPosition(), dt);
             Quaternion newRotation = Integration.integrateQuaternion(currentBody.getDynamicsData().getAngularVelocity().duplicate(), currentBody.getDynamicsData().getRotation(), dt);
 
