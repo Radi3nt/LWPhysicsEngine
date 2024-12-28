@@ -10,27 +10,28 @@ import fr.radi3nt.physics.core.state.RigidBody;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PersistentManifold {
 
     private static final int MAX_CONTACT_POINTS = 4;
-    private static final float CONTACT_BREAK_NORMAL_THRESHOLD = 2e-1f;
-    private static final float CONTACT_BREAK_ORTHOGONAL_THRESHOLD = 3e-1f;
+    private static final float CONTACT_BREAK_NORMAL_THRESHOLD = 1e-3f;
+    private static final float CONTACT_BREAK_ORTHOGONAL_THRESHOLD = 3e-2f;
 
 
-    private final List<ManifoldPoint> manifoldPoints = new ArrayList<>();
+    private final List<ManifoldPoint> manifoldPoints = new CopyOnWriteArrayList<>();
     private final ContactKeyPair keyPair;
     private long relevantStep;
 
-    private GeneratedContactPair currentPair;
+    private GeneratedContactPair<RigidBody> currentPair;
 
-    public PersistentManifold(GeneratedContactPair keyPair) {
-        this.keyPair = keyPair.toPair();
+    public PersistentManifold(GeneratedContactPair<RigidBody> keyPair) {
+        this.keyPair = GeneratedContactPair.toPair(keyPair);
         currentPair = keyPair;
     }
 
     public void refresh(RigidBody a, RigidBody b, long currentStep) {
-        currentPair = new GeneratedContactPair(a, keyPair.shapeA, b, keyPair.shapeB);
+        currentPair = new GeneratedContactPair<>(a, keyPair.shapeA, b, keyPair.shapeB);
 
         for (int i = 0, manifoldPointsSize = manifoldPoints.size(); i < manifoldPointsSize; i++) {
             ManifoldPoint manifoldPoint = manifoldPoints.get(i);
@@ -73,6 +74,9 @@ public class PersistentManifold {
         int mostReplacingIndex = -1;
         for (int i = 0; i < manifoldPoints.size(); i++) {
             ManifoldPoint manifoldPoint = manifoldPoints.get(i);
+            if (manifoldPoint==point)
+                return true;
+
             float replaceFactor = point.replaces(manifoldPoint);
             if (replaceFactor>mostReplacing) {
                 mostReplacing = replaceFactor;
@@ -189,7 +193,7 @@ public class PersistentManifold {
         return step-this.relevantStep<=stepThreshold;
     }
 
-    private void setRelevant(long currentStep) {
+    public void setRelevant(long currentStep) {
         this.relevantStep = currentStep;
     }
 }
