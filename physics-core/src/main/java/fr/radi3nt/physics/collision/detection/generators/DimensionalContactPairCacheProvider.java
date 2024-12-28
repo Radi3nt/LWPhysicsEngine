@@ -13,29 +13,25 @@ import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.Supplier;
 
 public class DimensionalContactPairCacheProvider implements ContactPairCacheProvider {
 
-    private final Supplier<RigidBodyIsland> rigidBodyIsland;
     private final PairGenerator<RigidBody> pairGenerator;
     private final OneDimensionProvider oneDimensionProvider;
 
-    public DimensionalContactPairCacheProvider(Supplier<RigidBodyIsland> rigidBodyIsland, PairGenerator<RigidBody> pairGenerator, OneDimensionProvider oneDimensionProvider) {
-        this.rigidBodyIsland = rigidBodyIsland;
+    public DimensionalContactPairCacheProvider(PairGenerator<RigidBody> pairGenerator, OneDimensionProvider oneDimensionProvider) {
         this.pairGenerator = pairGenerator;
         this.oneDimensionProvider = oneDimensionProvider;
     }
 
     @Override
-    public ContactPairCache<RigidBody> newFilledCache() {
+    public ContactPairCache<RigidBody> newFilledCache(RigidBodyIsland island) {
         OneDimensionPairMeeter<RigidBody> oneDimensionPairMeeter = new RigidBodyOneDimensionPairMeeter(pairGenerator);
         OneDimensionOrderer<RigidBody> oneDimensionOrderer = new OneDimensionOrderer<>(oneDimensionProvider);
 
         Collection<OneDimensionPairMeeter.StoredBody<RigidBody>> rigidBodies = new ArrayList<>();
         Collection<OneDimensionPairMeeter.StoredBody<RigidBody>> nonPhysical = new ArrayList<>();
 
-        RigidBodyIsland island = rigidBodyIsland.get();
         for (int i = 0; i < island.getSize(); i++) {
             RigidBody rigidBody = island.getRigidBody(i);
             if (rigidBody.getCollisionData().getPreCollisionShape()!=null) {

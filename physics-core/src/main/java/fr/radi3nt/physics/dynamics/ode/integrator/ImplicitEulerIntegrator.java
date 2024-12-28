@@ -7,8 +7,15 @@ import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
 import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.island.EditableRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
+import fr.radi3nt.physics.dynamics.transformer.VelocityTransformer;
 
 public class ImplicitEulerIntegrator implements Integrator {
+
+    private final VelocityTransformer transformer;
+
+    public ImplicitEulerIntegrator(VelocityTransformer transformer) {
+        this.transformer = transformer;
+    }
 
     @Override
     public void integrate(RigidBodyIsland original, EditableRigidBodyIsland resultIsland, MotionAccumulator forces, float dt) {
@@ -32,6 +39,8 @@ public class ImplicitEulerIntegrator implements Integrator {
 
             resultIsland.setRigidBody(currentBody.preview(newPosition, newRotation, newLinearMomentum, newAngularMomentum), i);
         }
+
+        transformer.transform(resultIsland, dt);
     }
 
 }

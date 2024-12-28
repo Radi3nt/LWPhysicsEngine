@@ -7,6 +7,7 @@ import fr.radi3nt.physics.collision.contact.cache.PersistentManifoldCache;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.detection.narrow.dispacher.CollisionDispatcher;
 import fr.radi3nt.physics.core.state.RigidBody;
+import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,8 +32,8 @@ public class CollisionDetection {
         this.service = service;
     }
 
-    public Collection<PersistentManifold> process(long currentStep) {
-        ContactPairCache<RigidBody> cache = cacheProvider.newFilledCache();
+    public Collection<PersistentManifold> process(RigidBodyIsland current, long currentStep) {
+        ContactPairCache<RigidBody> cache = cacheProvider.newFilledCache(current);
 
         Collection<Callable<Object>> callables = new ArrayList<>();
         Collection<PersistentManifold> collidingManifolds = ConcurrentHashMap.newKeySet();

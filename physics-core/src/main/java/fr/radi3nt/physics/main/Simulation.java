@@ -40,7 +40,6 @@ import fr.radi3nt.physics.constraints.constraint.list.SetConstraintList;
 import fr.radi3nt.physics.constraints.sle.ProjectedGaussSeidelSolver;
 import fr.radi3nt.physics.constraints.sle.lambda.SetWarmStartingLambdaProvider;
 import fr.radi3nt.physics.constraints.solver.ImpulseConstraintSolver;
-import fr.radi3nt.physics.constraints.solver.caching.WarmStartingConstraintCacher;
 import fr.radi3nt.physics.constraints.solver.filled.ListConstraintFiller;
 import fr.radi3nt.physics.constraints.solver.mass.InverseMassMatrixComputer;
 import fr.radi3nt.physics.constraints.solver.mass.SparseInverseMassMatrixComputer;
@@ -49,9 +48,9 @@ import fr.radi3nt.physics.dynamics.force.caster.*;
 import fr.radi3nt.physics.dynamics.island.ArrayListRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.ListRigidBodyIsland;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
+import fr.radi3nt.physics.dynamics.ode.IntegratorOdeSolver;
 import fr.radi3nt.physics.dynamics.ode.OdeSolver;
-import fr.radi3nt.physics.dynamics.ode.integrator.ImplicitEulerIntegrator;
-import fr.radi3nt.physics.dynamics.ode.rk4.AverageRungeKutta4OdeSolver;
+import fr.radi3nt.physics.dynamics.ode.integrator.SemiImplicitEulerIntegrator;
 import fr.radi3nt.physics.splitter.ConstrainedIsland;
 import fr.radi3nt.physics.splitter.GroupIslandSplitter;
 import fr.radi3nt.physics.splitter.IslandSplitter;
@@ -87,7 +86,10 @@ public class Simulation {
     public final Collection<Runnable> collisionSimulationUpdate = new ConcurrentLinkedQueue<>();
     public final Collection<Runnable> beforeSimulationUpdate = new ConcurrentLinkedQueue<>();
 
-    private final ExecutorService pool = Executors.newWorkStealingPool(8);
+    private final Queue<RigidBody> pendingAdd = new ConcurrentLinkedQueue<>();
+    private final Queue<RigidBody> pendingRemove = new ConcurrentLinkedQueue<>();
+
+    private final ExecutorService pool = Executors.newWorkStealingPool(2);
     //private final ExecutorService pool = new SynchronousExecutorService();
 
     private final FluidDragForceCaster airDrag = new FluidDragForceCaster(new FluidDragForceCaster.DragProperties(1.225f, new SimpleVector3f(0, 0, 0)), new FluidDragForceCaster.DragCoefficientSupplier() {
@@ -105,36 +107,32 @@ public class Simulation {
     private final Collection<CachingProcessedShapeProvider<?>> cachingProviders = new ArrayList<>();
 
     private final ProcessedShapeProvider<SatProcessedShape> satShapeProvider;
+    private final MapProcessedShapeProvider<GjkProcessedShape> gjkShapeProvider;
 
-    private RigidBodyIsland result;
     private long step;
     private double time;
 
     public Simulation() {
         //odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new ForceDataForceCaster()));
-        odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new ForceDataForceCaster(), new SetMassedVectorForceCaster(new SimpleVector3f(0, GRAVITY, 0), new SimpleVector3f()), airDrag, torqueDrag));
+        //odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new ForceDataForceCaster(), new SetMassedVectorForceCaster(new SimpleVector3f(0, GRAVITY, 0), new SimpleVector3f()), torqueDrag));
+        odeSolver = new IntegratorOdeSolver(new SemiImplicitEulerIntegrator(this::processCollisions), new CompositeForceCaster(new ForceDataForceCaster(), new SetMassedVectorForceCaster(new SimpleVector3f(0, GRAVITY, 0), new SimpleVector3f()), torqueDrag));
         //odeSolver = new AverageRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new AttractionForceCaster(12, new SimpleVector3f())));
         //odeSolver = new IntegrateRungeKutta4OdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
         //odeSolver = new IntegratorOdeSolver(new ImplicitEulerIntegrator(), new CompositeForceCaster(new VectorForceCaster(new SimpleVector3f(0, -9.81f, 0), new SimpleVector3f())));
 
-        PairGenerator pairGenerator = new BroadphaseOrderingPairGenerator(new BroadPhaseStrategies(new SphereBroadPhaseDetectionStrategy()));
-        ContactPairCacheProvider aabbCacheProvider = new DimensionalContactPairCacheProvider(() -> result, pairGenerator, new AABBOneDimensionProvider());
+        PairGenerator<RigidBody> pairGenerator = new BroadphaseOrderingPairGenerator(new BroadPhaseStrategies(new SphereBroadPhaseDetectionStrategy()));
+        ContactPairCacheProvider aabbCacheProvider = new DimensionalContactPairCacheProvider(pairGenerator, new AABBOneDimensionProvider());
 
-        SetWarmStartingLambdaProvider provider = new SetWarmStartingLambdaProvider(0.9f);
         //InverseMassMatrixComputer inverseMassMatrixComputer = new ArrayInverseMassMatrixComputer();
         InverseMassMatrixComputer inverseMassMatrixComputer = new SparseInverseMassMatrixComputer();
-        impulseConstraintSolver = new ImpulseConstraintSolver(inverseMassMatrixComputer, new WarmStartingConstraintCacher(provider), new ProjectedGaussSeidelSolver(1e-2f, 20, provider));
+        impulseConstraintSolver = new ImpulseConstraintSolver(inverseMassMatrixComputer, () -> new SetWarmStartingLambdaProvider(0.9f), new ProjectedGaussSeidelSolver(1e-3f, 50));
         SimultaneousImpulseRestingContactSolver solver = new SimultaneousImpulseRestingContactSolver(
                 new SimpleNoPenetrationConstraintProvider(new DriftParameters(0.1f)),
-                instantConstraintList);
-        collisionContactSolver = new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(30), solver);
+                instantConstraintList, this);
+        collisionContactSolver = new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(this, 100), solver);
+        //collisionContactSolver = new CompositionCollisionContactSolver(solver);
 
-        Map<Class<? extends CollisionShape>, ProcessedShapeProvider<? extends SatProcessedShape>> satProviders = new HashMap<>();
-        satProviders.put(BoxShape.class, SatBoxProcessedShapeProvider.INSTANCE);
-        satProviders.put(SquareShape.class, SatSquareProcessedShapeProvider.INSTANCE);
-        satProviders.put(TriangleShape.class, SatTriangleProcessedShapeProvider.INSTANCE);
-
-        satShapeProvider = new MapProcessedShapeProvider<>(satProviders);
+        satShapeProvider = createSatProvider();
         CachingProcessedShapeProvider<SatProcessedShape> satCachingProvider = new CachingProcessedShapeProvider<>(satShapeProvider);
         cachingProviders.add(satCachingProvider);
 
@@ -144,20 +142,65 @@ public class Simulation {
         gjkProviders.put(TriangleShape.class, GjkTriangleShapeProvider.INSTANCE);
         gjkProviders.put(SphereShape.class, GjkSphereShapeProvider.INSTANCE);
 
+        gjkShapeProvider = new MapProcessedShapeProvider<>(gjkProviders);
+
         collisionDetection = new CollisionDetection(aabbCacheProvider, manifoldCache, new SupportedCollisionDispatcher(
                 new SATNarrowPhaseDetectionAlgorithm(satCachingProvider),
-            new GJKNarrowPhaseDetectionAlgorithm(new MapProcessedShapeProvider<>(gjkProviders))
+            new GJKNarrowPhaseDetectionAlgorithm(gjkShapeProvider)
         ), pool);
         islandSplitter = new GroupIslandSplitter(new ConstraintBodyIslandRelationGrouper(instantConstraintList), false);
     }
 
+    public static ProcessedShapeProvider<SatProcessedShape> createSatProvider() {
+        final ProcessedShapeProvider<SatProcessedShape> satShapeProvider;
+        Map<Class<? extends CollisionShape>, ProcessedShapeProvider<? extends SatProcessedShape>> satProviders = new HashMap<>();
+        satProviders.put(BoxShape.class, SatBoxProcessedShapeProvider.INSTANCE);
+        satProviders.put(SquareShape.class, SatSquareProcessedShapeProvider.INSTANCE);
+        satProviders.put(TriangleShape.class, SatTriangleProcessedShapeProvider.INSTANCE);
+
+        satShapeProvider = new MapProcessedShapeProvider<>(satProviders);
+        return satShapeProvider;
+    }
+
     public void step(float dt) {
+        while (!pendingAdd.isEmpty()) {
+            rigidBodyIsland.add(pendingAdd.poll());
+        }
+        while (!pendingRemove.isEmpty()) {
+            rigidBodyIsland.remove(pendingRemove.poll());
+        }
+
         for (Runnable runnable : beforeSimulationUpdate) {
             runnable.run();
         }
 
-        result = odeSolver.integrate(rigidBodyIsland, dt);
-        Collection<PersistentManifold> process = collisionDetection.process(step);
+        RigidBodyIsland result = odeSolver.integrate(rigidBodyIsland, dt);
+        stepSleeping(result);
+
+        rigidBodyIsland.copyStates(result);
+        for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
+            RigidBody rigidBody = rigidBodyIsland.getRigidBody(i);
+            rigidBody.getCollisionData().relevance(step);
+        }
+
+        manifoldCache.cleanup(step);
+
+        for (Runnable runnable : afterSimulationUpdate) {
+            runnable.run();
+        }
+
+        for (CachingProcessedShapeProvider<?> cachingProvider : cachingProviders) {
+            cachingProvider.clearCache();
+        }
+
+        instantConstraintList.done();
+
+        time+=dt;
+        step++;
+    }
+
+    private void processCollisions(RigidBodyIsland result, float dt) {
+        Collection<PersistentManifold> process = collisionDetection.process(result, step);
 
         for (Runnable runnable : collisionSimulationUpdate) {
             runnable.run();
@@ -165,16 +208,11 @@ public class Simulation {
 
         collisionContactSolver.solve(process, dt);
 
+
         ConstrainedIsland[] islands = islandSplitter.getIslands(result);
-        int mostBodies = 0;
-        int mostConstraints = 0;
-        for (ConstrainedIsland island : islands) {
-            mostBodies = Math.max(island.island.getSize(), mostBodies);
-            if (mostConstraints<island.constraints.size()) {
-                mostConstraints = island.constraints.size();
-            }
-        }
-        //System.out.println("Island amount: " + islands.length + ", most bodies: " + mostBodies + " most constraints: " + mostConstraints);
+
+        //debugConstraints(islands);
+
 
         List<Callable<Object>> callables = new ArrayList<>();
         List<ConstrainedIsland> subset = new ArrayList<>();
@@ -196,35 +234,29 @@ public class Simulation {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
 
+    private static void debugConstraints(ConstrainedIsland[] islands) {
+        int mostBodies = 0;
+        int mostConstraints = 0;
+        for (ConstrainedIsland island : islands) {
+            mostBodies = Math.max(island.island.getSize(), mostBodies);
+            if (mostConstraints<island.constraints.size()) {
+                mostConstraints = island.constraints.size();
+            }
+        }
+        System.out.println("Island amount: " + islands.length + ", most bodies: " + mostBodies + " most constraints: " + mostConstraints);
+    }
+
+    private void stepSleeping(RigidBodyIsland result) {
         int sleeping = 0;
-        for (int i = 0; i < result.getSize(); i++) {
-            RigidBody rigidBody = result.getRigidBody(i);
+        for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
+            RigidBody rigidBody = rigidBodyIsland.getRigidBody(i);
             rigidBody.getSleepingData().step(rigidBody.getDynamicsData());
             if (rigidBody.getSleepingData().isSleeping())
                 sleeping++;
         }
-        //System.out.println("Sleeping " + sleeping + "/" + result.getSize());
-        rigidBodyIsland.copyStates(result);
-        for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
-            RigidBody rigidBody = rigidBodyIsland.getRigidBody(i);
-            rigidBody.getCollisionData().relevance(step);
-        }
-
-        manifoldCache.cleanup(step);
-
-        for (Runnable runnable : afterSimulationUpdate) {
-            runnable.run();
-        }
-
-        for (CachingProcessedShapeProvider<?> cachingProvider : cachingProviders) {
-            cachingProvider.clearCache();
-        }
-
-        instantConstraintList.done();
-
-        time+=dt;
-        step++;
+        System.out.println("Sleeping " + sleeping + "/" + result.getSize());
     }
 
     private void submit(float dt, List<Callable<Object>> callables, List<ConstrainedIsland> subset) {
@@ -276,6 +308,10 @@ public class Simulation {
         return satShapeProvider;
     }
 
+    public MapProcessedShapeProvider<GjkProcessedShape> getGjkShapeProvider() {
+        return gjkShapeProvider;
+    }
+
     public ListRigidBodyIsland getRigidBodyIsland() {
         return rigidBodyIsland;
     }
@@ -290,5 +326,19 @@ public class Simulation {
 
     public void stop() {
         pool.shutdown();
+    }
+
+    public void add(RigidBody rigidBody) {
+        pendingRemove.remove(rigidBody);
+        pendingAdd.add(rigidBody);
+    }
+
+    public void remove(RigidBody rigidBody) {
+        pendingAdd.remove(rigidBody);
+        pendingRemove.add(rigidBody);
+    }
+
+    public float getGravity() {
+        return -GRAVITY;
     }
 }
