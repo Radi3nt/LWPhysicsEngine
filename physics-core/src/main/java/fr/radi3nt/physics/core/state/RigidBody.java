@@ -39,6 +39,10 @@ public class RigidBody implements TransformedObject {
         return new RigidBody(rigidBodyId, forceData, DynamicsData.from(dynamicsData), collisionData, sleepingData);
     }
 
+    public RigidBody preview(int id) {
+        return new RigidBody(id, forceData, DynamicsData.from(dynamicsData), collisionData, sleepingData);
+    }
+
     public void setState(DynamicsData data) {
         this.dynamicsData.copyState(data);
     }
