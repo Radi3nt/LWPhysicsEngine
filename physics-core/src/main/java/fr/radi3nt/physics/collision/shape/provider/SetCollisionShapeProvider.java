@@ -20,6 +20,11 @@ public class SetCollisionShapeProvider implements CollisionShapeProvider {
         return collisionShapes;
     }
 
+    @Override
+    public boolean isEmpty() {
+        return collisionShapes.length==0;
+    }
+
     public DuoCollisionShape[] getCollisionShapes() {
         return collisionShapes;
     }

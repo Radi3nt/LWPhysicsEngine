@@ -1,5 +1,6 @@
 package fr.radi3nt.physics.collision;
 
+import fr.radi3nt.physics.collision.contact.manifold.ManifoldPoint;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
 import fr.radi3nt.physics.collision.shape.CollisionShapeProvider;
@@ -10,49 +11,55 @@ import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 
 public class CollisionData {
 
-    private final CollisionShapeProvider collisionShapeProvider;
     private final Collection<PersistentManifold> currentCollisions = new ConcurrentLinkedQueue<>();
-    private final Predicate<RigidBody> canCollide;
+    private final Collection<PointFilter> pointsFilter = new ArrayList<>();
+    private final Collection<Predicate<RigidBody>> canCollide;
+
+    private CollisionShapeProvider collisionShapeProvider;
+
     private long currentStep;
-    private boolean empty = false;
+
+    public CollisionData() {
+        this.collisionShapeProvider = new SetCollisionShapeProvider(null);
+        this.canCollide = new ArrayList<>(Collections.singleton((o) -> false));
+    }
 
     public CollisionData(CollisionShapeProvider collisionShape) {
-        this(collisionShape, rigidBody -> true);
+        this.collisionShapeProvider = collisionShape;
+        this.canCollide = new ArrayList<>();
     }
 
     public CollisionData(CollisionShapeProvider collisionShapeProvider, Predicate<RigidBody> canCollide) {
         this.collisionShapeProvider = collisionShapeProvider;
-        this.canCollide = canCollide;
-    }
-
-    public CollisionData(CollisionShape collisionShape, PreCollisionShape preCollisionShape) {
-        this(collisionShape, preCollisionShape, rigidBody -> true);
+        this.canCollide = new ArrayList<>(Collections.singleton(canCollide));
     }
 
     public CollisionData(CollisionShape collisionShape, PreCollisionShape preCollisionShape, Predicate<RigidBody> canCollide) {
         this.collisionShapeProvider = new SetCollisionShapeProvider(preCollisionShape, new DuoCollisionShape(collisionShape, null));
-        this.canCollide = canCollide;
-    }
-
-    public CollisionData(CollisionShape collisionShape) {
-        this(collisionShape, rigidBody -> true);
+        this.canCollide = new ArrayList<>(Collections.singleton(canCollide));
     }
 
     public CollisionData(CollisionShape collisionShape, Predicate<RigidBody> canCollide) {
         PreCollisionShape preCollisionShape = collisionShape instanceof PreCollisionShape ? (PreCollisionShape) collisionShape : null;
         this.collisionShapeProvider = new SetCollisionShapeProvider(preCollisionShape, new DuoCollisionShape(collisionShape, null));
-        this.canCollide = canCollide;
+        this.canCollide = new ArrayList<>(Collections.singleton(canCollide));
     }
 
-    public CollisionData() {
-        this.collisionShapeProvider = new SetCollisionShapeProvider(null);
-        this.canCollide = rigidBody -> false;
-        empty = true;
+    public CollisionData(CollisionShape collisionShape) {
+        PreCollisionShape preCollisionShape = collisionShape instanceof PreCollisionShape ? (PreCollisionShape) collisionShape : null;
+        this.collisionShapeProvider = new SetCollisionShapeProvider(preCollisionShape, new DuoCollisionShape(collisionShape, null));
+        this.canCollide = new ArrayList<>();
+    }
+
+    public CollisionData(CollisionShape collisionShape, PreCollisionShape preCollisionShape) {
+        this.collisionShapeProvider = new SetCollisionShapeProvider(preCollisionShape, new DuoCollisionShape(collisionShape, null));
+        this.canCollide = new ArrayList<>();
     }
 
     public void relevance(long step) {
@@ -65,6 +72,10 @@ public class CollisionData {
 
     public PreCollisionShape getPreCollisionShape() {
         return collisionShapeProvider.getPreCollisionShape();
+    }
+
+    public void setCollisionShapeProvider(CollisionShapeProvider collisionShapeProvider) {
+        this.collisionShapeProvider = collisionShapeProvider;
     }
 
     public CollisionShapeProvider getCollisionShapeProvider() {
@@ -82,10 +93,28 @@ public class CollisionData {
     }
 
     public boolean isEmpty() {
-        return empty;
+        return collisionShapeProvider.isEmpty();
     }
 
     public boolean cannotCollide(RigidBody other) {
-        return !canCollide.test(other);
+        for (Predicate<RigidBody> rigidBodyPredicate : canCollide) {
+            if (!rigidBodyPredicate.test(other))
+                return true;
+        }
+        return false;
+    }
+
+    public Collection<PointFilter> getPointsFilter() {
+        return pointsFilter;
+    }
+
+    public Collection<Predicate<RigidBody>> getCanCollide() {
+        return canCollide;
+    }
+
+    public interface PointFilter {
+
+        void filter(Collection<ManifoldPoint> points, RigidBody other, long currentStep);
+
     }
 }
