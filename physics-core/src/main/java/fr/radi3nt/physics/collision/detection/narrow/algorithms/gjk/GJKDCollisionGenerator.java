@@ -4,8 +4,6 @@ import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.shapes.GjkProcessedShape;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class GJKDCollisionGenerator {
@@ -17,6 +15,10 @@ public class GJKDCollisionGenerator {
         GjkPoint supportPoint = getSupportPoint(shape1, shape2, START_AXIS);
 
         GJKSimplex simplex = new GJKSimplex();
+
+        if (supportPoint==null)
+            return new CollisionResult(Float.NEGATIVE_INFINITY, simplex, false);
+
         simplex.addFront(supportPoint);
 
         GjkPoint lastPoint = null;
@@ -28,7 +30,7 @@ public class GJKDCollisionGenerator {
             supportPoint = getSupportPoint(shape1, shape2, currentDirection);
             Vector3f vMinusP = supportPoint.getPoint().duplicate().sub(currentDirection.duplicate().negate());
 
-            if (vMinusP.dot(currentDirection.duplicate())<=0 || supportPoint.equals(lastPoint) || simplex.alreadyHasPoint(supportPoint) || iterations>MAX_ITERATIONS) {
+            if (vMinusP.dot(currentDirection)<=0 || supportPoint.equals(lastPoint) || simplex.alreadyHasPoint(supportPoint) || iterations>MAX_ITERATIONS) {
                 float distanceToOrigin = simplexDistanceToOrigin(simplex, shape1, shape2);
                 return new CollisionResult(distanceToOrigin, simplex, false);
             }

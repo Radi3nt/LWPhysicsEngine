@@ -38,15 +38,12 @@ public class GjkPoint {
         List<GjkProcessedShape.FurthestPoint[]> pointsGroup = new ArrayList<>();
         for (GjkProcessedShape.FurthestPoint furthestPointA : furthestA) {
             for (GjkProcessedShape.FurthestPoint furthestPointB : furthestB) {
-                Vector3f point = buildMinkowskiPoint(furthestPointA.point, furthestPointB.point);
-                //if (point.dot(direction) > 0) {
-                    pointsGroup.add(new GjkProcessedShape.FurthestPoint[]{furthestPointA, furthestPointB});
-                //}
+                pointsGroup.add(new GjkProcessedShape.FurthestPoint[]{furthestPointA, furthestPointB});
             }
         }
 
         if (pointsGroup.isEmpty()) {
-            return from(furthestA.get(0), furthestB.get(0));
+            return null;
         }
 
         return from(pointsGroup, direction);
