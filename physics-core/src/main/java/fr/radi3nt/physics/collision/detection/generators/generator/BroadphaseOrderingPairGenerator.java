@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class BroadphaseOrderingPairGenerator implements PairGenerator {
+public class BroadphaseOrderingPairGenerator implements PairGenerator<RigidBody> {
 
     private static final Comparator<RigidBody> rigidBodyComparator = Comparator.comparingInt(RigidBody::getRigidBodyId);
     private final Predicate<PreCollisionPair> canSkipCollision;
@@ -21,7 +21,7 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
     }
 
     @Override
-    public void pair(List<GeneratedContactPair> pairList, RigidBody a, RigidBody b, PreCollisionData aData, PreCollisionData bData) {
+    public void pair(List<GeneratedContactPair<RigidBody>> pairList, RigidBody a, RigidBody b, PreCollisionData aData, PreCollisionData bData) {
         if ((a.isStatic() && b.isStatic()) || a.getCollisionData().cannotCollide(b) || b.getCollisionData().cannotCollide(a))
             return;
 
@@ -42,7 +42,7 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
         }
     }
 
-    private static GeneratedContactPair getContactPairs(RigidBody rigidBodyA, RigidBody rigidBodyB, CollisionShape a, CollisionShape b) {
+    private static GeneratedContactPair<RigidBody> getContactPairs(RigidBody rigidBodyA, RigidBody rigidBodyB, CollisionShape a, CollisionShape b) {
         int compare = rigidBodyComparator.compare(rigidBodyA, rigidBodyB);
         if (compare < 0) {
             CollisionShape cacheShape = a;
@@ -53,6 +53,6 @@ public class BroadphaseOrderingPairGenerator implements PairGenerator {
             rigidBodyB = cacheRigidBody;
         }
 
-        return new GeneratedContactPair(rigidBodyA, a, rigidBodyB, b);
+        return new GeneratedContactPair<>(rigidBodyA, a, rigidBodyB, b);
     }
 }

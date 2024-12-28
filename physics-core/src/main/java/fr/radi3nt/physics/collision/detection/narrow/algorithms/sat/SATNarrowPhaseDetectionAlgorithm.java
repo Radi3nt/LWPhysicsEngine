@@ -10,7 +10,10 @@ import fr.radi3nt.physics.collision.detection.narrow.processed.ProcessedShapePro
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.NormalSatCollisionGenerator;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.SatProcessedShape;
 import fr.radi3nt.physics.collision.shape.shapes.CollisionShape;
+import fr.radi3nt.physics.core.state.RigidBody;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class SATNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlgorithm {
@@ -25,7 +28,16 @@ public class SATNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
     }
 
     @Override
-    public PersistentManifold buildManifolds(PersistentManifoldCache manifoldCache, GeneratedContactPair pair, long currentStep) {
+    public PersistentManifold buildManifolds(PersistentManifoldCache manifoldCache, GeneratedContactPair<RigidBody> pair, long currentStep) {
+        Collection<ManifoldPoint> collision = buildManifoldPoints(pair);
+        if (collision==null)
+            collision = Collections.emptyList();
+
+        return manifoldComputer.compute(manifoldCache, pair, collision, currentStep);
+    }
+
+    @Override
+    public List<ManifoldPoint> buildManifoldPoints(GeneratedContactPair<?> pair) {
         SatProcessedShape shapeA = processedShapeProvider.getShape(pair.shapeA, pair.objectA);
         SatProcessedShape shapeB = processedShapeProvider.getShape(pair.shapeB, pair.objectB);
 
@@ -34,8 +46,7 @@ public class SATNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
         if (collision.isEmpty()) {
             return null;
         }
-
-        return manifoldComputer.compute(manifoldCache, pair, collision, currentStep);
+        return collision;
     }
 
     @Override

@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface SatCollisionGenerator {
 
-    List<ManifoldPoint> test(GeneratedContactPair contactPair, SatProcessedShape shapeA, SatProcessedShape shapeB);
+    List<ManifoldPoint> test(GeneratedContactPair<?> contactPair, SatProcessedShape shapeA, SatProcessedShape shapeB);
 
 }

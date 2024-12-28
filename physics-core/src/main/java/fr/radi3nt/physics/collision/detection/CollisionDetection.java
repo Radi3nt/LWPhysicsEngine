@@ -6,6 +6,7 @@ import fr.radi3nt.physics.collision.contact.cache.ContactPairCacheProvider;
 import fr.radi3nt.physics.collision.contact.cache.PersistentManifoldCache;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.collision.detection.narrow.dispacher.CollisionDispatcher;
+import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,13 +32,13 @@ public class CollisionDetection {
     }
 
     public Collection<PersistentManifold> process(long currentStep) {
-        ContactPairCache cache = cacheProvider.newFilledCache();
+        ContactPairCache<RigidBody> cache = cacheProvider.newFilledCache();
 
         Collection<Callable<Object>> callables = new ArrayList<>();
         Collection<PersistentManifold> collidingManifolds = ConcurrentHashMap.newKeySet();
 
-        Collection<GeneratedContactPair> subset = new ArrayList<>();
-        for (GeneratedContactPair contactPair : cache) {
+        Collection<GeneratedContactPair<RigidBody>> subset = new ArrayList<>();
+        for (GeneratedContactPair<RigidBody> contactPair : cache) {
             subset.add(contactPair);
             if (subset.size()>=BATCH_SIZE) {
                 submit(currentStep, callables, subset, collidingManifolds);
@@ -58,9 +59,9 @@ public class CollisionDetection {
         return collidingManifolds;
     }
 
-    private void submit(long currentStep, Collection<Callable<Object>> callables, Collection<GeneratedContactPair> finalSubset, Collection<PersistentManifold> collidingManifolds) {
+    private void submit(long currentStep, Collection<Callable<Object>> callables, Collection<GeneratedContactPair<RigidBody>> finalSubset, Collection<PersistentManifold> collidingManifolds) {
         callables.add(() -> {
-            for (GeneratedContactPair pair : finalSubset) {
+            for (GeneratedContactPair<RigidBody> pair : finalSubset) {
                 PersistentManifold manifold = collisionDispatcher.dispatch(manifoldCache, pair, currentStep);
                 if (manifold==null)
                     continue;

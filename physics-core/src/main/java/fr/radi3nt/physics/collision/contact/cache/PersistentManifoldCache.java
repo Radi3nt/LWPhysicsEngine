@@ -2,13 +2,12 @@ package fr.radi3nt.physics.collision.contact.cache;
 
 import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
-
-import java.util.Optional;
+import fr.radi3nt.physics.core.state.RigidBody;
 
 public interface PersistentManifoldCache {
 
-    PersistentManifold getCachedManifold(GeneratedContactPair contactPair);
-    PersistentManifold newManifold(GeneratedContactPair contactPair);
-    void releaseManifold(GeneratedContactPair pair);
+    PersistentManifold getCachedManifold(GeneratedContactPair<RigidBody> contactPair);
+    PersistentManifold newManifold(GeneratedContactPair<RigidBody> contactPair);
+    void releaseManifold(GeneratedContactPair<RigidBody> pair);
 
 }

@@ -32,7 +32,16 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
     }
 
     @Override
-    public PersistentManifold buildManifolds(PersistentManifoldCache manifoldCache, GeneratedContactPair pairs, long currentStep) {
+    public PersistentManifold buildManifolds(PersistentManifoldCache manifoldCache, GeneratedContactPair<RigidBody> pairs, long currentStep) {
+        Collection<ManifoldPoint> manifoldPoints = buildManifoldPoints(pairs);
+        if (manifoldPoints==null)
+            manifoldPoints = Collections.emptyList();
+
+        return regularManifoldComputer.compute(manifoldCache, pairs, manifoldPoints, currentStep);
+    }
+
+    @Override
+    public List<ManifoldPoint> buildManifoldPoints(GeneratedContactPair<?> pairs) {
         CollisionShape shapeA = pairs.shapeA;
         CollisionShape shapeB = pairs.shapeB;
 

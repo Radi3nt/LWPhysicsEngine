@@ -3,6 +3,7 @@ package fr.radi3nt.physics.collision.contact.cache;
 import fr.radi3nt.physics.collision.contact.ContactKeyPair;
 import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
+import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.*;
 
@@ -12,16 +13,16 @@ public class HashPersistentManifoldCache implements PersistentManifoldCache {
     private final Map<ContactKeyPair, PersistentManifold> persistentManifoldMap = new HashMap<>();
 
     @Override
-    public PersistentManifold getCachedManifold(GeneratedContactPair contactPair) {
-        return persistentManifoldMap.get(contactPair.toPair());
+    public PersistentManifold getCachedManifold(GeneratedContactPair<RigidBody> contactPair) {
+        return persistentManifoldMap.get(GeneratedContactPair.toPair(contactPair));
     }
 
     @Override
-    public PersistentManifold newManifold(GeneratedContactPair contactPair) {
-        return persistentManifoldMap.computeIfAbsent(contactPair.toPair(), keyPair -> createManifold(contactPair));
+    public PersistentManifold newManifold(GeneratedContactPair<RigidBody> contactPair) {
+        return persistentManifoldMap.computeIfAbsent(GeneratedContactPair.toPair(contactPair), keyPair -> createManifold(contactPair));
     }
 
-    private PersistentManifold createManifold(GeneratedContactPair contactPair) {
+    private PersistentManifold createManifold(GeneratedContactPair<RigidBody> contactPair) {
         PersistentManifold persistentManifold = new PersistentManifold(contactPair);
         contactPair.objectA.getCollisionData().getCurrentCollisions().add(persistentManifold);
         contactPair.objectB.getCollisionData().getCurrentCollisions().add(persistentManifold);
@@ -29,8 +30,8 @@ public class HashPersistentManifoldCache implements PersistentManifoldCache {
     }
 
     @Override
-    public void releaseManifold(GeneratedContactPair pair) {
-        PersistentManifold removed = persistentManifoldMap.remove(pair.toPair());
+    public void releaseManifold(GeneratedContactPair<RigidBody> pair) {
+        PersistentManifold removed = persistentManifoldMap.remove(GeneratedContactPair.toPair(pair));
         if (removed!=null)
             removedManifold(removed);
     }
@@ -47,7 +48,7 @@ public class HashPersistentManifoldCache implements PersistentManifoldCache {
             if (!next.getValue().isRelevant(step, RELEVANT_STEP_DISCARD)) {
                 removedManifold(next.getValue());
                 iterator.remove();
-                }
+            }
         }
     }
 
