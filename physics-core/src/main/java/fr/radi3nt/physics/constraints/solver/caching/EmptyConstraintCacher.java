@@ -5,13 +5,19 @@ import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule
 
 public class EmptyConstraintCacher implements ConstraintCacher {
 
+
     @Override
-    public void prepare(CachingConstraintModule[] constraintModules) {
+    public void setModules(CachingConstraintModule[] constraintModules) {
 
     }
 
     @Override
-    public void cache(CachingConstraintModule[] constraintModules, VectorNf lambda) {
+    public void prepare(VectorNf lambda) {
+
+    }
+
+    @Override
+    public void cache(VectorNf lambda) {
 
     }
 }

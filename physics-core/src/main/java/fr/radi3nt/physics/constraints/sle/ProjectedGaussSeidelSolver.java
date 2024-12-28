@@ -2,7 +2,6 @@ package fr.radi3nt.physics.constraints.sle;
 
 import fr.radi3nt.maths.Maths;
 import fr.radi3nt.maths.components.arbitrary.VectorNf;
-import fr.radi3nt.physics.constraints.sle.lambda.LambdaProvider;
 import fr.radi3nt.physics.math.ArbitraryMatrix;
 
 public class ProjectedGaussSeidelSolver implements SleSolver {
@@ -12,11 +11,8 @@ public class ProjectedGaussSeidelSolver implements SleSolver {
     private final float threshold;
     private int iterations;
 
-    private final LambdaProvider lambdaProvider;
-
-    public ProjectedGaussSeidelSolver(float threshold, int iterations, LambdaProvider lambdaProvider) {
+    public ProjectedGaussSeidelSolver(float threshold, int iterations) {
         this.threshold = threshold;
-        this.lambdaProvider = lambdaProvider;
         this.iterations = iterations;
     }
 
@@ -84,9 +80,10 @@ public class ProjectedGaussSeidelSolver implements SleSolver {
     }
 
     @Override
-    public VectorNf solve(ArbitraryMatrix a, VectorNf b, VectorNf min, VectorNf max) {
+    public VectorNf solve(VectorNf lambda, ArbitraryMatrix a, VectorNf b, VectorNf min, VectorNf max) {
         int size = b.size();
-        VectorNf lambda = lambdaProvider.newLambda(size);
+        if (lambda.size()!=size)
+            throw new UnsupportedOperationException("Lambda size isn't right");
 
         int i = 0;
         for (; i < iterations; i++) {

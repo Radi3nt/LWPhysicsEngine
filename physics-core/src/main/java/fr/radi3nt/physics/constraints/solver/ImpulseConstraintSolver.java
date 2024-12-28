@@ -7,7 +7,7 @@ import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule;
 import fr.radi3nt.physics.constraints.constraint.index.IdentifiedDynamicsData;
 import fr.radi3nt.physics.constraints.sle.SleSolver;
-import fr.radi3nt.physics.constraints.solver.caching.ConstraintCacher;
+import fr.radi3nt.physics.constraints.sle.lambda.SetWarmStartingLambdaProvider;
 import fr.radi3nt.physics.constraints.solver.filled.ConstraintFiller;
 import fr.radi3nt.physics.constraints.solver.filled.FilledData;
 import fr.radi3nt.physics.constraints.solver.mass.InverseMassMatrixComputer;
@@ -18,15 +18,17 @@ import fr.radi3nt.physics.math.matrices.sparse.SparseArbitraryMatrix;
 import fr.radi3nt.physics.math.multiplication.algorithm.SparseMatrixMultiplicationAlgorithm;
 import fr.radi3nt.physics.math.multiplication.algorithm.SparseSparseMatrixMultiplicationAlgorithm;
 
+import java.util.function.Supplier;
+
 import static fr.radi3nt.physics.constraints.constraint.StateConstraint.STATE_STRIDE;
 
 public class ImpulseConstraintSolver implements ConstraintSolver {
 
     private final InverseMassMatrixComputer inverseMassMatrixComputer;
-    private final ConstraintCacher lambdaCaching;
+    private final Supplier<SetWarmStartingLambdaProvider> lambdaCaching;
     private final SleSolver solver;
 
-    public ImpulseConstraintSolver(InverseMassMatrixComputer inverseMassMatrixComputer, ConstraintCacher lambdaCaching, SleSolver solver) {
+    public ImpulseConstraintSolver(InverseMassMatrixComputer inverseMassMatrixComputer, Supplier<SetWarmStartingLambdaProvider> lambdaCaching, SleSolver solver) {
         this.inverseMassMatrixComputer = inverseMassMatrixComputer;
         this.lambdaCaching = lambdaCaching;
         this.solver = solver;
@@ -47,9 +49,11 @@ public class ImpulseConstraintSolver implements ConstraintSolver {
         b.add(computeDamping);
         b.mul(-1);
 
-        lambdaCaching.prepare(modules);
-        VectorNf lambda = solver.solve(a, b, filledData.min, filledData.max);
-        lambdaCaching.cache(modules, lambda);
+        SetWarmStartingLambdaProvider lambdaCaching = this.lambdaCaching.get();
+        lambdaCaching.getCacher().setModules(modules);
+        VectorNf initialLambda = lambdaCaching.newLambda(b.size());
+        VectorNf lambda = solver.solve(initialLambda, a, b, filledData.min, filledData.max);
+        lambdaCaching.getCacher().cache(lambda);
 
         VectorNf impulses = j.transformTransposed(lambda);
         addImpulses(filledData.rigidBodiesIndex, impulses);

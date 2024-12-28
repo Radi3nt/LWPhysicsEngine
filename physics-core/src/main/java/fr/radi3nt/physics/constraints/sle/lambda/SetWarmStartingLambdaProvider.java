@@ -2,11 +2,12 @@ package fr.radi3nt.physics.constraints.sle.lambda;
 
 import fr.radi3nt.maths.components.arbitrary.VectorNf;
 import fr.radi3nt.maths.components.arbitrary.vector.ArrayVectorNf;
+import fr.radi3nt.physics.constraints.solver.caching.WarmStartingConstraintCacher;
 
 public class SetWarmStartingLambdaProvider implements LambdaProvider {
 
     private float warmStartingAmount;
-    private VectorNf warmStartedLambda = new ArrayVectorNf(0);
+    private final WarmStartingConstraintCacher cacher = new WarmStartingConstraintCacher();
 
     public SetWarmStartingLambdaProvider(float warmStartingAmount) {
         this.warmStartingAmount = warmStartingAmount;
@@ -16,15 +17,14 @@ public class SetWarmStartingLambdaProvider implements LambdaProvider {
         this.warmStartingAmount = warmStartingAmount;
     }
 
-    public void setWarmStartedLambda(VectorNf warmStartedLambda) {
-        this.warmStartedLambda = warmStartedLambda;
+    public WarmStartingConstraintCacher getCacher() {
+        return cacher;
     }
 
     @Override
     public VectorNf newLambda(int size) {
-        if (warmStartedLambda.size()!=size)
-            throw new UnsupportedOperationException("Size doesn't match with prepared lambda");
-        VectorNf lambda = warmStartedLambda.duplicate();
+        VectorNf lambda = new ArrayVectorNf(size);
+        cacher.prepare(lambda);
         lambda.mul(warmStartingAmount);
         return lambda;
     }

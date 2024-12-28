@@ -5,7 +5,9 @@ import fr.radi3nt.physics.constraints.constraint.caching.CachingConstraintModule
 
 public interface ConstraintCacher {
 
-    void prepare(CachingConstraintModule[] constraintModules);
-    void cache(CachingConstraintModule[] constraintModules, VectorNf lambda);
+    void setModules(CachingConstraintModule[] constraintModules);
+
+    void prepare(VectorNf lambda);
+    void cache(VectorNf lambda);
 
 }
