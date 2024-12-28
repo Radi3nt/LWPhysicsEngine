@@ -1,5 +1,6 @@
 package fr.radi3nt.physics.collision.shape.shapes;
 
+import fr.radi3nt.maths.components.advanced.quaternions.ComponentsQuaternion;
 import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.physics.collision.detection.broad.aabb.aabb.AABB;
@@ -18,6 +19,10 @@ public class BoxShape extends TransformedShape implements PreCollisionShape {
     public BoxShape(Vector3f offset, Quaternion rotation, Vector3f size) {
         super(offset, rotation);
         this.size = size;
+    }
+
+    public BoxShape(Vector3f offset, Vector3f size) {
+        this(offset, ComponentsQuaternion.zero(), size);
     }
 
     public BoxShape(Vector3f size) {
