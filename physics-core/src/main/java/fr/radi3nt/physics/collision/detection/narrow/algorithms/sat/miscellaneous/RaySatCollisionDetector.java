@@ -1,13 +1,13 @@
 package fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.miscellaneous;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
-import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.NormalSatCollisionDetector;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.detector.NormalSatCollisionDetector;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.projection.SatProjectedObject;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.projection.SatProjectionProvider;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.SatProcessedShape;
 import fr.radi3nt.physics.core.TransformedObject;
 
-import static fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.NormalSatCollisionDetector.getNormalTransformedArray;
+import static fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.detector.NormalSatCollisionDetector.getNormalTransformedArray;
 import static java.lang.Math.abs;
 
 public class RaySatCollisionDetector {
@@ -90,7 +90,6 @@ public class RaySatCollisionDetector {
         if (axis.lengthSquared() <=EPSILON || Float.isNaN(axis.lengthSquared()))
             return false;
 
-
         float point = axis.dot(world);
         float speed = axis.dot(ray);
 
@@ -108,26 +107,16 @@ public class RaySatCollisionDetector {
             if (mta == null) {
                 mta = axis;
                 normal = SatProjectedObject.getOverlapNormal(p1, p2);
-                //normal = p1.max > point ? -1 : 1;
             }
         }
 
         float tEnter = p1.getEnterTime(point, speed);
         float tLeave = p1.getLeaveTime(point, speed);
 
-        /*
-        if (tEnter > tLeave) {
-            float oldTEnter = tEnter;
-            tEnter = tLeave;
-            tLeave = oldTEnter;
-        }
-         */
-
         if (this.collisionTEnter <= tEnter) {
             mta = axis;
             collisionTEnter = tEnter;
-            normal = p1.getNormal(point);
-            //normal = p1.max > point ? -1 : 1;
+            normal = p1.getNormalFromPoint(point);
         }
 
         this.collisionTLeave = Math.min(this.collisionTLeave, tLeave);

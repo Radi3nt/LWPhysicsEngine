@@ -1,15 +1,14 @@
-package fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer;
+package fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.detector;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.maths.pool.ObjectPool;
 import fr.radi3nt.maths.pool.Vector3fPool;
-import fr.radi3nt.physics.collision.contact.GeneratedContactPair;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.info.SatAxis;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.info.SatEdge;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.projection.SatProjectedObject;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.projection.SatProjectionProvider;
-import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.shape.SatProcessedShape;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.simple.SatShape;
 import fr.radi3nt.physics.core.TransformedObject;
 
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import java.util.Collection;
 
 import static java.lang.Math.abs;
 
-public class NormalSatCollisionDetector implements SatCollisionDetector {
+public class NormalSatCollisionDetector {
 
     public static final ObjectPool<Vector3f> VECTOR_3_F_OBJECT_POOL = new Vector3fPool(20);
     private static final float EPSILON = 1e-5f;
@@ -34,8 +33,7 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
 
     private ResultInfo resultInfo;
 
-    public boolean testCollision(GeneratedContactPair pair, SatProcessedShape shape1, SatProcessedShape shape2) {
-
+    public boolean testCollision(TransformedObject a, TransformedObject b, SatShape shape1, SatShape shape2) {
         minimumInfo = new MinimumInfo();
 
         SatAxis[] shapeAAxis = shape1.getSatAxis();
@@ -43,18 +41,18 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
 
         edgeAllowedAsMinimum = shape1.canUseEdgesAsMinimum() && shape2.canUseEdgesAsMinimum();
 
-        computeVertices(pair, shape1, shape2);
+        computeVertices(a, b, shape1, shape2);
 
         currentContactType = SatContactType.A_AXIS;
 
-        if (separatingAxisFound(shapeAAxis, pair.objectA)) {
+        if (separatingAxisFound(shapeAAxis, a)) {
             freeAll();
             return false;
         }
 
         currentContactType = SatContactType.B_AXIS;
 
-        if (separatingAxisFound(shapeBAxis, pair.objectB)) {
+        if (separatingAxisFound(shapeBAxis, b)) {
             freeAll();
             return false;
         }
@@ -62,7 +60,7 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
         currentContactType = SatContactType.EDGE_AXIS;
 
         Collection<EdgeCross> edgeCrosses = new ArrayList<>();
-        if (separatingCollisionEdgeFound(pair, shape1, shape2, edgeCrosses)) {
+        if (separatingCollisionEdgeFound(a, b, shape1, shape2, edgeCrosses)) {
             freeAll();
             return false;
         }
@@ -79,7 +77,7 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
             resultInfo.aAxis = minimumInfo.foundAxis;
             for (SatAxis axis : shapeBAxis) {
                 Vector3f transformedAxis = axis.getAxis().duplicate();
-                pair.objectB.getRotation().transform(transformedAxis);
+                b.getRotation().transform(transformedAxis);
                 if (abs(transformedAxis.dot(minimumInfo.worldSpaceAxis))!=1)
                     continue;
                 resultInfo.bAxis = axis;
@@ -91,7 +89,7 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
             resultInfo.bAxis = minimumInfo.foundAxis;
             for (SatAxis axis : shapeAAxis) {
                 Vector3f transformedAxis = axis.getAxis().duplicate();
-                pair.objectA.getRotation().transform(transformedAxis);
+                a.getRotation().transform(transformedAxis);
                 if (abs(transformedAxis.dot(minimumInfo.worldSpaceAxis))!=1)
                     continue;
                 resultInfo.aAxis = axis;
@@ -119,7 +117,7 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
         return resultInfo;
     }
 
-    private void correctNormal(SatProcessedShape shape1, SatProcessedShape shape2, SatContactType contactType) {
+    private void correctNormal(SatShape shape1, SatShape shape2, SatContactType contactType) {
         int expectedNormal = minimumInfo.normal;
         expectedNormal = shape1.transformNormal(minimumInfo.worldSpaceAxis, expectedNormal, true, contactType);
         expectedNormal = shape2.transformNormal(minimumInfo.worldSpaceAxis, expectedNormal, false, contactType);
@@ -139,9 +137,9 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
         }
     }
 
-    public void computeVertices(GeneratedContactPair pair, SatProcessedShape shape1, SatProcessedShape shape2) {
-        providerA = shape1.getSatProjectionProvider(pair.objectA, VECTOR_3_F_OBJECT_POOL);
-        providerB = shape2.getSatProjectionProvider(pair.objectB, VECTOR_3_F_OBJECT_POOL);
+    public void computeVertices(TransformedObject a, TransformedObject b, SatShape shape1, SatShape shape2) {
+        providerA = shape1.getSatProjectionProvider(a, VECTOR_3_F_OBJECT_POOL);
+        providerB = shape2.getSatProjectionProvider(b, VECTOR_3_F_OBJECT_POOL);
     }
 
 
@@ -167,7 +165,7 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
         return shapeAxisArray;
     }
 
-    private boolean separatingCollisionEdgeFound(GeneratedContactPair pair, SatProcessedShape shape1, SatProcessedShape shape2, Collection<EdgeCross> edgeCrosses) {
+    private boolean separatingCollisionEdgeFound(TransformedObject a, TransformedObject b, SatShape shape1, SatShape shape2, Collection<EdgeCross> edgeCrosses) {
         SatEdge[] shape1Edges = shape1.getSatEdges();
         SatEdge[] shape2Edges = shape2.getSatEdges();
 
@@ -175,14 +173,14 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
 
         for (SatEdge shape1Edge : shape1Edges) {
             Vector3f edge1 = shape1Edge.getAxis().duplicate();
-            pair.objectA.getRotation().transform(edge1);
+            a.getRotation().transform(edge1);
 
             for (SatEdge shape2Edge : shape2Edges) {
                 Vector3f edge2 = shape2Edge.getAxis().duplicate();
-                pair.objectB.getRotation().transform(edge2);
+                b.getRotation().transform(edge2);
 
                 Vector3f satAxis = edge2.cross(edge1);
-                if (axisWereColinear(satAxis))
+                if (axisWereCollinear(satAxis))
                     continue;
 
                 satAxis.normalize();
@@ -211,7 +209,7 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
         return false;
     }
 
-    private static boolean axisWereColinear(Vector3f satAxis) {
+    private static boolean axisWereCollinear(Vector3f satAxis) {
         return satAxis.lengthSquared() < EPSILON || Double.isNaN(satAxis.lengthSquared());
     }
 
@@ -232,11 +230,11 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
 
     private boolean axisHadNoOverlap(Vector3f axis, EdgeCross edgeCross) {
         float shortestDistance = getShortestDistance(axis);
-        if (isNotPenetration(shortestDistance))
+        if (isSeparated(shortestDistance))
             return true;
 
         float overlap = -shortestDistance;
-        if (isNotNewMinimum(overlap)) {
+        if (isNotShallower(overlap)) {
             return false;
         }
         if (!edgeAllowedAsMinimum)
@@ -250,11 +248,11 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
 
     private boolean faceAxisHadNoOverlap(Vector3f axis, SatAxis satAxis) {
         float shortestDistance = getShortestDistance(axis);
-        if (isNotPenetration(shortestDistance))
+        if (isSeparated(shortestDistance))
             return true;
 
         float overlap = -shortestDistance;
-        if (isNotNewMinimum(overlap)) {
+        if (isNotShallower(overlap)) {
             return false;
         }
 
@@ -264,11 +262,11 @@ public class NormalSatCollisionDetector implements SatCollisionDetector {
         return false;
     }
 
-    private static boolean isNotPenetration(float shortestDistance) {
+    private static boolean isSeparated(float shortestDistance) {
         return shortestDistance >= 0;
     }
 
-    private boolean isNotNewMinimum(float overlap) {
+    private boolean isNotShallower(float overlap) {
         return overlap >= minimumInfo.overlap;
     }
 

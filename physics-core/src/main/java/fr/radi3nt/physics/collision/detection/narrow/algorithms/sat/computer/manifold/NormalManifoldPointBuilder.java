@@ -7,7 +7,7 @@ import fr.radi3nt.physics.collision.contact.manifold.ManifoldPoint;
 import fr.radi3nt.physics.collision.contact.manifold.PointIndex;
 import fr.radi3nt.physics.collision.contact.manifold.manifolds.clip.ClipManifoldPoint;
 import fr.radi3nt.physics.collision.contact.manifold.manifolds.edges.EdgeManifoldPoint;
-import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.NormalSatCollisionDetector;
+import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.computer.detector.NormalSatCollisionDetector;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.AbstractClippingSurface;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.ClipPlane;
 import fr.radi3nt.physics.collision.detection.narrow.algorithms.sat.shapes.clip.ClipPlanes;
@@ -33,13 +33,13 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
     public NormalManifoldPointBuilder() {
     }
 
-    public List<ManifoldPoint> createContactPoints(GeneratedContactPair pair, SatProcessedShape sa, SatProcessedShape sb, NormalSatCollisionDetector.ResultInfo resultInfo) {
+    public List<ManifoldPoint> createContactPoints(GeneratedContactPair<?> pair, SatProcessedShape sa, SatProcessedShape sb, NormalSatCollisionDetector.ResultInfo resultInfo) {
         List<ManifoldPoint> manifoldPoints = computePairs(pair, sa, sb, resultInfo);
         removeDuplicatedContactsPoints(manifoldPoints, pair, resultInfo.worldSpaceNormal);
         return manifoldPoints;
     }
 
-    private List<ManifoldPoint> computePairs(GeneratedContactPair pair, SatProcessedShape sa, SatProcessedShape sb, NormalSatCollisionDetector.ResultInfo resultInfo) {
+    private List<ManifoldPoint> computePairs(GeneratedContactPair<?> pair, SatProcessedShape sa, SatProcessedShape sb, NormalSatCollisionDetector.ResultInfo resultInfo) {
         List<ManifoldPoint> resultPoints = runFaces(pair, sa, sb, resultInfo);
         if (resultPoints != null) return resultPoints;
 
@@ -49,10 +49,12 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
         return Collections.emptyList();
     }
 
-    private List<ManifoldPoint> runEdges(GeneratedContactPair pair, NormalSatCollisionDetector.ResultInfo resultInfo) {
+    private List<ManifoldPoint> runEdges(GeneratedContactPair<?> pair, NormalSatCollisionDetector.ResultInfo resultInfo) {
         if (resultInfo.contactType.isFace()) {
             return null;
         }
+        if (Float.isNaN(resultInfo.overlap))
+            return null;
 
         List<ManifoldPoint> resultPoints = new ArrayList<>();
 
@@ -140,10 +142,12 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
         resultPoints.add(new EdgeManifoldPoint(lA, lB, worldSpaceNormal, bestEdgeA, bestEdgeB));
     }
 
-    private List<ManifoldPoint> runFaces(GeneratedContactPair pair, SatProcessedShape sa, SatProcessedShape sb, NormalSatCollisionDetector.ResultInfo resultInfo) {
+    private List<ManifoldPoint> runFaces(GeneratedContactPair<?> pair, SatProcessedShape sa, SatProcessedShape sb, NormalSatCollisionDetector.ResultInfo resultInfo) {
         if (!resultInfo.contactType.isFace()) {
             return null;
         }
+        if (Float.isNaN(resultInfo.overlap))
+            return null;
 
         List<ManifoldPoint> resultPoints = new ArrayList<>();
 
@@ -202,7 +206,7 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
         }
     }
 
-    private void getPointsFromClippedEdges(GeneratedContactPair pair, NormalSatCollisionDetector.ResultInfo resultInfo, List<ManifoldPoint> resultPoints, SatFace referenceFace, Collection<AbstractClippingSurface.ClippedPoint> points, TransformedObject t, boolean fromA) {
+    private void getPointsFromClippedEdges(GeneratedContactPair<?> pair, NormalSatCollisionDetector.ResultInfo resultInfo, List<ManifoldPoint> resultPoints, SatFace referenceFace, Collection<AbstractClippingSurface.ClippedPoint> points, TransformedObject t, boolean fromA) {
         Vector3f worldSpaceNormal = referenceFace.getClipPlane().getNormal().duplicate();
         t.getRotation().transform(worldSpaceNormal);
 
@@ -267,7 +271,7 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
         return selected;
     }
 
-    private void removeDuplicatedContactsPoints(List<ManifoldPoint> pairResults, GeneratedContactPair pair, Vector3f directedNormal) {
+    private void removeDuplicatedContactsPoints(List<ManifoldPoint> pairResults, GeneratedContactPair<?> pair, Vector3f directedNormal) {
         for (ManifoldPoint pairResult : pairResults) {
             pairResult.refresh(pair.objectA, pair.objectB);
         }
@@ -292,7 +296,7 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
                 float epsilon = EPSILON;
 
                 cache.copy(pointA1);
-                if (cache.sub(pointA2).lengthSquared() < epsilon) {
+                if (cache.sub(pointA2).lengthSquared() < epsilon*epsilon) {
                     float projected1 = directedNormal.dot(pointB1);
                     float projected2 = directedNormal.dot(pointB2);
                     if (projected1>projected2) {
@@ -306,7 +310,7 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
                     continue;
                 }
                 cache.copy(pointB1);
-                if (cache.sub(pointB2).lengthSquared() < epsilon) {
+                if (cache.sub(pointB2).lengthSquared() < epsilon*epsilon) {
                     float projected1 = directedNormal.dot(pointA1);
                     float projected2 = directedNormal.dot(pointA2);
                     if (projected1>projected2) {
@@ -320,7 +324,7 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
                     continue;
                 }
                 cache.copy(pointA1);
-                if (cache.sub(pointB2).lengthSquared() < epsilon) {
+                if (cache.sub(pointB2).lengthSquared() < epsilon*epsilon) {
                     float projected1 = directedNormal.dot(pointB1);
                     float projected2 = directedNormal.dot(pointA2);
                     if (projected1>projected2) {
@@ -334,7 +338,7 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
                     continue;
                 }
                 cache.copy(pointB1);
-                if (cache.sub(pointA2).lengthSquared() < epsilon) {
+                if (cache.sub(pointA2).lengthSquared() < epsilon*epsilon) {
                     float projected1 = directedNormal.dot(pointA1);
                     float projected2 = directedNormal.dot(pointB2);
                     if (projected1>projected2) {

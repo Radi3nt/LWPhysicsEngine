@@ -15,22 +15,6 @@ public class SatProjectedObject implements ProjectionSettable {
         this.max = max;
     }
 
-    public float getEnterTime(float point, float speed) {
-        return Math.min((max - point)/speed, (min - point)/speed);
-    }
-
-    public float getLeaveTime(float point, float speed) {
-        return Math.max((max - point)/speed, (min - point)/speed);
-    }
-
-    public int getNormal(float point) {
-        if (point>=max)
-            return 1;
-        if (point<=min)
-            return -1;
-        return 0;
-    }
-
     public void set(float min, float max) {
         this.min = min;
         this.max = max;
@@ -64,7 +48,7 @@ public class SatProjectedObject implements ProjectionSettable {
         return new SatProjectedObject(min, max);
     }
 
-    public SatProjectedObject projectReplace(Vector3f[] vertices, Vector3f axis) {
+    public void projectReplace(Vector3f[] vertices, Vector3f axis) {
         float min = axis.dot(vertices[0]);
         float max = min;
         for (int i = 1; i < vertices.length; i++) {
@@ -75,8 +59,22 @@ public class SatProjectedObject implements ProjectionSettable {
 
         this.min = min;
         this.max = max;
+    }
 
-        return this;
+    public float getEnterTime(float point, float speed) {
+        return Math.min((max - point)/speed, (min - point)/speed);
+    }
+
+    public float getLeaveTime(float point, float speed) {
+        return Math.max((max - point)/speed, (min - point)/speed);
+    }
+
+    public int getNormalFromPoint(float point) {
+        if (point>=max)
+            return 1;
+        if (point<=min)
+            return -1;
+        return 0;
     }
 
     public boolean contains(SatProjectedObject p2) {
@@ -89,13 +87,19 @@ public class SatProjectedObject implements ProjectionSettable {
         if (p1.contains(p2))
             return abs(p2.min - p1.min) > abs(p1.max - p2.max) ? 1 : -1;
         if (p1.min <= p2.min) {
-            if (p1.max >= p2.min)
                 return 1;
         } else {
-            if (p2.max >= p1.min)
                 return -1;
         }
-        return 0;
+    }
+
+
+    public static float getEnterTime(SatProjectedObject p1, SatProjectedObject p2, float speed) {
+        return Math.min((p1.max - p2.min)/speed, (p1.min - p2.max)/speed);
+    }
+
+    public static float getLeaveTime(SatProjectedObject p1, SatProjectedObject p2, float speed) {
+        return Math.max((p1.max - p2.min)/speed, (p1.min - p2.max)/speed);
     }
 
     public static float getShortestDistance(SatProjectedObject p1, SatProjectedObject p2) {
