@@ -14,12 +14,12 @@ public interface TransformedObject {
 
         @Override
         public Vector3f getPosition() {
-            return zeroPos;
+            return zeroPos.duplicate();
         }
 
         @Override
         public Quaternion getRotation() {
-            return zeroRot;
+            return zeroRot.duplicate();
         }
     };
 
