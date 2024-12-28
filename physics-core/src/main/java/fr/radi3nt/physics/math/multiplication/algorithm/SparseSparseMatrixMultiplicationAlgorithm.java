@@ -1,5 +1,6 @@
 package fr.radi3nt.physics.math.multiplication.algorithm;
 
+import fr.radi3nt.maths.Maths;
 import fr.radi3nt.physics.math.matrices.array.BitFlatArrayArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.array.FlatArrayArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.sparse.SparseArbitraryMatrix;
@@ -9,6 +10,7 @@ import fr.radi3nt.physics.math.multiplication.MatrixMultiplicationAlgorithm;
 public class SparseSparseMatrixMultiplicationAlgorithm implements MatrixMultiplicationAlgorithm<SparseArbitraryMatrix, SparseArbitraryMatrix, FlatArrayArbitraryMatrix> {
 
     public static final SparseSparseMatrixMultiplicationAlgorithm INSTANCE = new SparseSparseMatrixMultiplicationAlgorithm();
+    private static final float EPSILON = 1e-4f;
 
     private SparseSparseMatrixMultiplicationAlgorithm() {
     }
@@ -68,11 +70,11 @@ public class SparseSparseMatrixMultiplicationAlgorithm implements MatrixMultipli
                     int currentA = i+aSparse.getStartX()-bSparse.getStartY();
                     for (int x = 0; x < bSparse.getWidth(); x++) {
                         float cache = bSparse.getLocal(x, currentA);
-                        if (cache==0)
+                        if (Maths.fastAbs(cache)<EPSILON)
                             continue;
                         for (int y = 0; y < aSparse.getHeight(); y++) {
                             float value = aSparse.getLocal(i, y);
-                            if (value==0)
+                            if (Maths.fastAbs(value)<EPSILON)
                                 continue;
                             result.add(x+bSparse.getStartX(), y+aSparse.getStartY(), value * cache);
                         }

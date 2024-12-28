@@ -1,5 +1,6 @@
 package fr.radi3nt.physics.math.multiplication.algorithm;
 
+import fr.radi3nt.maths.Maths;
 import fr.radi3nt.physics.math.ArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.array.BitFlatArrayArbitraryMatrix;
 import fr.radi3nt.physics.math.matrices.array.FlatArrayArbitraryMatrix;
@@ -10,6 +11,7 @@ import fr.radi3nt.physics.math.multiplication.MatrixMultiplicationAlgorithm;
 public class SparseMatrixMultiplicationAlgorithm implements MatrixMultiplicationAlgorithm<SparseArbitraryMatrix, ArbitraryMatrix, FlatArrayArbitraryMatrix> {
 
     public static final SparseMatrixMultiplicationAlgorithm INSTANCE = new SparseMatrixMultiplicationAlgorithm();
+    private static final float EPSILON = 1e-4f;
 
     private SparseMatrixMultiplicationAlgorithm() {
     }
@@ -164,11 +166,11 @@ public class SparseMatrixMultiplicationAlgorithm implements MatrixMultiplication
                 int y = -1;
                 while (y+1<height && (y=b.next(i+sparseBlock.getStartX(), y+1))!=-1) {
                     float cache = b.get(i+sparseBlock.getStartX(), y);
-                    if (cache==0)
+                    if (Maths.fastAbs(cache)<EPSILON)
                         continue;
                     for (int x = 0; x < sparseBlock.getHeight(); x++) {
                         float value = sparseBlock.getLocal(i, x);
-                        if (value==0)
+                        if (Maths.fastAbs(value)<EPSILON)
                             continue;
                         result.add(x+sparseBlock.getStartY(), y, cache * value);
                     }
