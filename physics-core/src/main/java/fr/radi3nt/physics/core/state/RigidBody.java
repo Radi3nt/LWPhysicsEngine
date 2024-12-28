@@ -13,7 +13,7 @@ public class RigidBody implements TransformedObject {
     private final ForceData forceData;
     private final DynamicsData dynamicsData;
     private final CollisionData collisionData;
-    private final SleepingData sleepingData;
+    private SleepingData sleepingData;
 
     public RigidBody(int rigidBodyId, DynamicsData dynamicsData, CollisionData collisionData, SleepingData sleepingData) {
         this(rigidBodyId, new ForceData(), dynamicsData, collisionData, sleepingData);
@@ -59,6 +59,10 @@ public class RigidBody implements TransformedObject {
         return sleepingData;
     }
 
+    public void setSleepingData(SleepingData sleepingData) {
+        this.sleepingData = sleepingData;
+    }
+
     @Override
     public Vector3f getPosition() {
         return dynamicsData.getPosition();
@@ -95,5 +99,4 @@ public class RigidBody implements TransformedObject {
     public int hashCode() {
         return rigidBodyId;
     }
-
 }
