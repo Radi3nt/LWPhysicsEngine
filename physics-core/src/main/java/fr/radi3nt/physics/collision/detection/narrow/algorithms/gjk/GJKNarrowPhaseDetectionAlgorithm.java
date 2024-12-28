@@ -14,6 +14,8 @@ import fr.radi3nt.physics.collision.detection.narrow.algorithms.gjk.shapes.GjkPr
 import fr.radi3nt.physics.collision.detection.narrow.manifold.RegularManifoldComputer;
 import fr.radi3nt.physics.collision.detection.narrow.processed.ProcessedShapeProvider;
 import fr.radi3nt.physics.collision.shape.shapes.CollisionShape;
+import fr.radi3nt.physics.core.TransformedObject;
+import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +24,7 @@ import java.util.List;
 
 public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlgorithm {
 
+    private static final boolean CORRECT_OVERLAPPING_CENTER_OF_MASS = false;
     private final GJKDCollisionGenerator generator = new GJKDCollisionGenerator();
     private final RegularManifoldComputer regularManifoldComputer;
     private final ProcessedShapeProvider<GjkProcessedShape> gjkShapeProcessedShapeProvider;
@@ -55,7 +58,7 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
             return null;
         }
 
-        Collection<ManifoldPoint> manifoldPoints = new ArrayList<>();
+        List<ManifoldPoint> manifoldPoints = new ArrayList<>();
 
         if (result.collidingSimplex.isPoint()) {
             pointCase(pairs, result, processedShapeA, processedShapeB, manifoldPoints);
@@ -152,12 +155,10 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
                 pointTriangleCase(pairs, isPointFaceA, processedShapeA, processedShapeB, pointOnFace, faceNormal, firstPointTri, manifoldPoints, points);
             }
         }
-
-
-        return regularManifoldComputer.compute(manifoldCache, pairs, manifoldPoints, currentStep);
+        return manifoldPoints;
     }
 
-    private static void pointTriangleCase(GeneratedContactPair pairs, boolean isPointFaceA, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Vector3f pointOnFace, Vector3f faceNormal, Vector3f firstPointTri, Collection<ManifoldPoint> manifoldPoints, PointBag points) {
+    private static void pointTriangleCase(GeneratedContactPair<?> pairs, boolean isPointFaceA, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Vector3f pointOnFace, Vector3f faceNormal, Vector3f firstPointTri, Collection<ManifoldPoint> manifoldPoints, PointBag points) {
         float realDistance = (isPointFaceA ? -processedShapeA.transformDistance(0) : processedShapeB.transformDistance(0));
         Vector3f realPoint = pointOnFace.duplicate().add(faceNormal.duplicate().mul(realDistance));
 
@@ -175,18 +176,20 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
         addManifold(manifoldPoints, pairs, closestPointA, closestPointB, faceNormal, buildIndices(points));
     }
 
-    private static void pointCase(GeneratedContactPair pairs, GJKDCollisionGenerator.CollisionResult result, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Collection<ManifoldPoint> manifoldPoints) {
+    private static void pointCase(GeneratedContactPair<? extends TransformedObject> pairs, GJKDCollisionGenerator.CollisionResult result, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Collection<ManifoldPoint> manifoldPoints) {
         GjkPoint solePoint = result.collidingSimplex.getPoints().get(0);
         Vector3f a = solePoint.getBuildA();
         Vector3f b = solePoint.getBuildB();
         correctPoints(pairs, result, processedShapeA, processedShapeB, manifoldPoints, a, b);
     }
 
-    private static void correctPoints(GeneratedContactPair pairs, GJKDCollisionGenerator.CollisionResult result, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Collection<ManifoldPoint> manifoldPoints, Vector3f a, Vector3f b) {
+    private static void correctPoints(GeneratedContactPair<? extends TransformedObject> pairs, GJKDCollisionGenerator.CollisionResult result, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Collection<ManifoldPoint> manifoldPoints, Vector3f a, Vector3f b) {
         float distA = -processedShapeA.transformDistance(0);
         float distB = processedShapeB.transformDistance(0);
 
-        Vector3f normal = b.duplicate().sub(a).normalize();
+        Vector3f normal = b.duplicate().sub(a).normalizeSafely();
+        if (normal.lengthSquared()==0 && CORRECT_OVERLAPPING_CENTER_OF_MASS)
+            normal.set(0, 1, 0);
 
         Vector3f aCorrected = a.duplicate().add(normal.duplicate().mul(distA));
         Vector3f bCorrected = b.duplicate().add(normal.duplicate().mul(distB));
@@ -194,7 +197,7 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
         addManifold(manifoldPoints, pairs, aCorrected, bCorrected, normal, buildIndices(result.collidingSimplex.getPoints()));
     }
 
-    private static void addManifold(Collection<ManifoldPoint> manifoldPoints, GeneratedContactPair pairs, Vector3f aCorrected, Vector3f bCorrected, Vector3f normal, GjkIndexedPoint[] collidingSimplex) {
+    private static void addManifold(Collection<ManifoldPoint> manifoldPoints, GeneratedContactPair<? extends TransformedObject> pairs, Vector3f aCorrected, Vector3f bCorrected, Vector3f normal, GjkIndexedPoint[] collidingSimplex) {
         manifoldPoints.add(new GJKManifoldPoint(pairs.objectA.toLocalSpace(aCorrected), pairs.objectB.toLocalSpace(bCorrected), normal, collidingSimplex));
     }
 
@@ -227,12 +230,12 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
         normal.setX(x);
         normal.setY(y);
         normal.setZ(z);
-        normal.normalize();
+        normal.normalizeSafely();
 
         return normal;
     }
 
-    private static void lineCase(GeneratedContactPair pairs, GJKDCollisionGenerator.CollisionResult result, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Collection<ManifoldPoint> manifoldPoints) {
+    private static void lineCase(GeneratedContactPair<? extends TransformedObject> pairs, GJKDCollisionGenerator.CollisionResult result, GjkProcessedShape processedShapeA, GjkProcessedShape processedShapeB, Collection<ManifoldPoint> manifoldPoints) {
         GJKSimplex simplex = result.collidingSimplex;
 
         GjkPoint p1 = simplex.getPoints().get(0);
@@ -255,7 +258,7 @@ public class GJKNarrowPhaseDetectionAlgorithm implements NarrowPhaseDetectionAlg
 
             closestPointOnEdges(pp2, pp1, d1, d2, closestPointA, closestPointB);
         }
-        Vector3f normal = closestPointB.duplicate().sub(closestPointA).normalize();
+        Vector3f normal = closestPointB.duplicate().sub(closestPointA).normalizeSafely();
         float distA = -processedShapeA.transformDistance(0);
         float distB = processedShapeB.transformDistance(0);
         closestPointA.add(normal.duplicate().mul(distA));
