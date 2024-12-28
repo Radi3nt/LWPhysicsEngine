@@ -46,14 +46,12 @@ public class CollisionData {
     }
 
     public CollisionData(CollisionShape collisionShape, Predicate<RigidBody> canCollide) {
-        PreCollisionShape preCollisionShape = collisionShape instanceof PreCollisionShape ? (PreCollisionShape) collisionShape : null;
-        this.collisionShapeProvider = new SetCollisionShapeProvider(preCollisionShape, new DuoCollisionShape(collisionShape, null));
+        this.collisionShapeProvider = SetCollisionShapeProvider.from(collisionShape);
         this.canCollide = new ArrayList<>(Collections.singleton(canCollide));
     }
 
     public CollisionData(CollisionShape collisionShape) {
-        PreCollisionShape preCollisionShape = collisionShape instanceof PreCollisionShape ? (PreCollisionShape) collisionShape : null;
-        this.collisionShapeProvider = new SetCollisionShapeProvider(preCollisionShape, new DuoCollisionShape(collisionShape, null));
+        this.collisionShapeProvider = SetCollisionShapeProvider.from(collisionShape);
         this.canCollide = new ArrayList<>();
     }
 
