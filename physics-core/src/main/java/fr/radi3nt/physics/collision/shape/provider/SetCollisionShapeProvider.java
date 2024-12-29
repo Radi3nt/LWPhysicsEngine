@@ -6,6 +6,9 @@ import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
 import fr.radi3nt.physics.collision.shape.shapes.CollisionShape;
 import fr.radi3nt.physics.core.state.RigidBody;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class SetCollisionShapeProvider implements CollisionShapeProvider {
 
     private final DuoCollisionShape[] collisionShapes;
@@ -41,5 +44,29 @@ public class SetCollisionShapeProvider implements CollisionShapeProvider {
     @Override
     public PreCollisionShape getPreCollisionShape() {
         return preCollisionShape;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SetCollisionShapeProvider)) return false;
+
+        SetCollisionShapeProvider that = (SetCollisionShapeProvider) o;
+        return Arrays.equals(collisionShapes, that.collisionShapes) && Objects.equals(preCollisionShape, that.preCollisionShape);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(collisionShapes);
+        result = 31 * result + Objects.hashCode(preCollisionShape);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "SetCollisionShapeProvider{" +
+                "collisionShapes=" + Arrays.toString(collisionShapes) +
+                ", preCollisionShape=" + preCollisionShape +
+                '}';
     }
 }

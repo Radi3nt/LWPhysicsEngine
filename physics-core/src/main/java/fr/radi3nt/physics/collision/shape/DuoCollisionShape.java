@@ -40,4 +40,12 @@ public class DuoCollisionShape implements PreCollisionHolder {
         result = 31 * result + Objects.hashCode(preCollisionShape);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "DuoCollisionShape{" +
+                "collisionShape=" + collisionShape +
+                ", preCollisionShape=" + preCollisionShape +
+                '}';
+    }
 }
