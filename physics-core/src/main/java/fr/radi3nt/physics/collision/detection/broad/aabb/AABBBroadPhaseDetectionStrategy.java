@@ -35,15 +35,13 @@ public class AABBBroadPhaseDetectionStrategy implements BroadPhaseDetectionStrat
         aabbA.copy(shapeA.getBoundingBox());
         aabbB.copy(shapeB.getBoundingBox());
 
-        boolean canSkip = false;
         for (OverlapTest overlapTest : overlapTests) {
             if (overlapTest.noOverlap(this.aabbA, this.aabbB)) {
-                canSkip = true;
-                break;
+                return true;
             }
         }
 
-        return canSkip;
+        return false;
     }
 
     private boolean noOverlapX(AABB aabbA, AABB aabbB) {

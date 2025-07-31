@@ -34,6 +34,8 @@ public class DimensionalContactPairCacheProvider implements ContactPairCacheProv
 
         for (int i = 0; i < island.getSize(); i++) {
             RigidBody rigidBody = island.getRigidBody(i);
+            if (rigidBody.getCollisionData().isEmpty())
+                continue;
             if (rigidBody.getCollisionData().getPreCollisionShape()!=null) {
                 rigidBodies.add(new OneDimensionPairMeeter.StoredBody<>(rigidBody, rigidBody.getCollisionData().getPreCollisionShape().toData(rigidBody)));
             } else {

@@ -7,7 +7,7 @@ import fr.radi3nt.physics.core.state.DynamicsData;
 
 public class ContactPoint {
 
-    public static final float THRESHOLD = 1e-3f;
+    public static final float THRESHOLD = 1e-2f;
     public final ManifoldPoint manifoldPoint;
     public final Vector3f normal;
 

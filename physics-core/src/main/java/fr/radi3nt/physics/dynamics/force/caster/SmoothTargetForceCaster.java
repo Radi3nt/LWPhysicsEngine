@@ -2,7 +2,7 @@ package fr.radi3nt.physics.dynamics.force.caster;
 
 import fr.radi3nt.maths.components.vectors.Vector3f;
 import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
-import fr.radi3nt.maths.dynamics.DynamicsConstants;
+import fr.radi3nt.maths.dynamics.advanced.DynamicsConstants;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
 import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;

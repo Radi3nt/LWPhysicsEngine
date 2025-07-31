@@ -13,6 +13,7 @@ import fr.radi3nt.physics.sleeping.SleepingData;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static java.lang.Math.abs;
 
@@ -20,8 +21,8 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
 
     private static final float WAKE_THRESHOLD = 1e-1f;
     private static final float SLOP_PENETRATION = 1e-3f;
-    private static final float BIAS_FACTOR = 0.1f;
-    private static final float BOUNCE_IMPULSE_THRESHOLD = 1f;
+    private static final float BIAS_FACTOR = 0.2f;
+    private static final float BOUNCE_IMPULSE_THRESHOLD = 0.3f;
     private static final float DELTA_THRESHOLD = 3e-4f;
     private static final double INV_SQRT2 = 0.7071067811865475244008443621048490d;
 
@@ -35,31 +36,49 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
 
     @Override
     public void solve(Collection<PersistentManifold> manifolds, float dt) {
-        Collection<SequentialPoint> sequentialPoints = new ArrayList<>();
+        Collection<Collection<SequentialPoint>> manifoldsSequences = new ArrayList<>();
         for (PersistentManifold manifold : manifolds) {
-            computePoints(sequentialPoints, manifold, dt);
+            computePoints(manifoldsSequences, manifold, dt);
         }
+
+        for (Collection<SequentialPoint> points : manifoldsSequences) {
+            for (SequentialPoint sequentialPoint : points) {
+                sequentialPoint.preStep();
+            }
+        }
+
 
         for (int i = 0; i < iterationCount; i++) {
             float mostDelta = 0;
-            for (SequentialPoint sequentialPoint : sequentialPoints) {
-                mostDelta = Math.max(sequentialPoint.correct(), mostDelta);
+            for (Collection<SequentialPoint> points : manifoldsSequences) {
+                for (SequentialPoint sequentialPoint : points) {
+                    mostDelta = Math.max(sequentialPoint.correct(), mostDelta);
+                }
             }
             if (mostDelta<=DELTA_THRESHOLD) {
                 break;
             }
         }
-        for (SequentialPoint sequentialPoint : sequentialPoints) {
-            sequentialPoint.applyBounce();
-            sequentialPoint.zeroIfSleeping();
-            sequentialPoint.wakeIfNeeded();
+        for (Collection<SequentialPoint> points : manifoldsSequences) {
+            for (int i = 0; i < 10; i++) {
+                for (SequentialPoint sequentialPoint : points) {
+                    sequentialPoint.applyBounce();
+                }
+            }
+        }
+        for (Collection<SequentialPoint> points : manifoldsSequences) {
+            for (SequentialPoint sequentialPoint : points) {
+                sequentialPoint.zeroIfSleeping();
+                sequentialPoint.wakeIfNeeded();
+            }
         }
     }
 
-    private void computePoints(Collection<SequentialPoint> sequentialPoints, PersistentManifold manifold, float dt) {
+    private void computePoints(Collection<Collection<SequentialPoint>> sequentialPoints, PersistentManifold manifold, float dt) {
         DynamicsData a = manifold.getObjectA().getDynamicsData();
         DynamicsData b = manifold.getObjectB().getDynamicsData();
         ContactPoint[] contactPoints = manifold.getContactPoints(a, b);
+        List<SequentialPoint> points = new ArrayList<>();
         for (int i = 0, contactPointsLength = contactPoints.length; i < contactPointsLength; i++) {
             ContactPoint contactPoint = contactPoints[(int) ((i+simulation.getStep())%contactPointsLength)];
             Vector3f normal = contactPoint.normal;
@@ -71,9 +90,12 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             boolean bSleeping = !manifold.getObjectB().getSleepingData().isAwoken();
 
             contactPoint.computeRealVelocity(aSleeping, bSleeping);
-            Vector3f tangentA = new SimpleVector3f();
-            Vector3f tangentB = new SimpleVector3f();
-            computeTangents(tangentA, tangentB, contactPoint.normal, contactPoint.getRelativeVelocityVec());
+
+            if (!contactPoint.isCollidingContact()) {
+                contactPoint.manifoldPoint.data.cachedAccumulatedImpulse = 0;
+                contactPoint.manifoldPoint.data.cachedAccumulatedFrictionLambda[0] = 0;
+                contactPoint.manifoldPoint.data.cachedAccumulatedFrictionLambda[1] = 0;
+            }
 
             Vector3f ra = contactPoint.rA;
             Vector3f rb = contactPoint.rB;
@@ -89,26 +111,13 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             Vector3f inertiaAN = ra.duplicate().cross(normal);
             Vector3f inertiaBN = rb.duplicate().cross(normal);
 
-            Vector3f inertiaATa = ra.duplicate().cross(tangentA);
-            Vector3f inertiaBTa = rb.duplicate().cross(tangentA);
-
-            Vector3f inertiaATb = ra.duplicate().cross(tangentB);
-            Vector3f inertiaBTb = rb.duplicate().cross(tangentB);
-
 
             iInvA.transform(inertiaAN);
             iInvB.transform(inertiaBN);
-            iInvA.transform(inertiaATa);
-            iInvB.transform(inertiaBTa);
-            iInvA.transform(inertiaATb);
-            iInvB.transform(inertiaBTb);
 
             inertiaAN.cross(ra.duplicate());
             inertiaBN.cross(rb.duplicate());
-            inertiaATa.cross(ra.duplicate());
-            inertiaBTa.cross(rb.duplicate());
-            inertiaATb.cross(ra.duplicate());
-            inertiaBTb.cross(rb.duplicate());
+
 
 
             float localAMass = aSleeping ? 0 : a.getBodyProperties().inverseMass;
@@ -118,13 +127,9 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
             if (kn==0)
                 continue;
 
-            float angularEffectTA = inertiaATa.add(inertiaBTa).dot(tangentA);
-            float angularEffectTB = inertiaATb.add(inertiaBTb).dot(tangentB);
-            float kta = (totalMass + angularEffectTA);
-            float ktb = (totalMass + angularEffectTB);
-
-            sequentialPoints.add(new SequentialPoint(tangentA, tangentB, totalMass, kn, kta, ktb, contactPoint, a, b, manifold.getObjectA().getSleepingData(), manifold.getObjectB().getSleepingData(), dt));
+            points.add(new SequentialPoint(totalMass, kn, contactPoint.getRelativeVelocityAlongNormal(), contactPoint, a, b, manifold.getObjectA().getSleepingData(), manifold.getObjectB().getSleepingData(), dt));
         }
+        sequentialPoints.add(points);
     }
 
     public static void computeTangents(Vector3f tangentA, Vector3f tangentB, Vector3f normal, Vector3f relativeVel) {
@@ -159,13 +164,15 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
 
         private static final boolean WAKE_UP_MANUALLY = true;
         private static final boolean BIAS = true;
+        private static final float MIN_BOUNCE_VELOCITY = 1f;
 
-        private final Vector3f tangentA;
-        private final Vector3f tangentB;
+        private final Vector3f tangentA = new SimpleVector3f();
+        private final Vector3f tangentB = new SimpleVector3f();
         private final float totalMass;
         private final float kN;
-        private final float kTa;
-        private final float kTb;
+        private float kTa;
+        private float kTb;
+        private final float initialRelativeVelocity;
         private final ContactPoint contactPoint;
         private final DynamicsData a;
         private final DynamicsData b;
@@ -173,52 +180,124 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
         private final SleepingData sleepA;
         private final SleepingData sleepB;
 
-        private float currentAccumulatedImpulse;
         private float accumulatedImpulse;
+        private float totalImpulse;
         private float accumulatedFrictionA;
         private float accumulatedFrictionB;
 
         private float velBias;
 
 
-        public SequentialPoint(Vector3f tangentA, Vector3f tangentB, float totalMass, float kN, float kTa, float kTb, ContactPoint contactPoint, DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB, float delta) {
-            this.tangentA = tangentA;
-            this.tangentB = tangentB;
+        public SequentialPoint(float totalMass, float kN, float initialRelativeVelocity, ContactPoint contactPoint, DynamicsData a, DynamicsData b, SleepingData sleepA, SleepingData sleepB, float delta) {
             this.totalMass = totalMass;
             this.kN = kN;
-            this.kTa = kTa;
-            this.kTb = kTb;
+            this.initialRelativeVelocity = initialRelativeVelocity;
             this.contactPoint = contactPoint;
             this.a = a;
             this.b = b;
             this.sleepA = sleepA;
             this.sleepB = sleepB;
-            this.velBias = BIAS_FACTOR/delta * Math.max(-contactPoint.penetration - SLOP_PENETRATION, 0);
-            //this.accumulatedImpulse = contactPoint.manifoldPoint.data.cachedAccumulatedImpulse;
+            this.velBias = (BIAS_FACTOR/delta) * Math.max(-contactPoint.penetration - SLOP_PENETRATION, 0);
+
+            this.tangentA.copy(contactPoint.manifoldPoint.data.oldTa);
+            this.tangentB.copy(contactPoint.manifoldPoint.data.oldTb);
+            this.accumulatedImpulse = contactPoint.manifoldPoint.data.cachedAccumulatedImpulse;
+            this.accumulatedFrictionA = contactPoint.manifoldPoint.data.cachedAccumulatedFrictionLambda[0];
+            this.accumulatedFrictionB = contactPoint.manifoldPoint.data.cachedAccumulatedFrictionLambda[1];
+        }
+
+        private void projectsTangentImpulses(Vector3f newTa, Vector3f newTb) {
+            Vector3f friction = tangentA.duplicate().mul(accumulatedFrictionA).add(tangentB.duplicate().mul(accumulatedFrictionB));
+            this.accumulatedFrictionA = newTa.dot(friction);
+            this.accumulatedFrictionB = newTb.dot(friction);
+        }
+
+        private void calculateTangents() {
+            Vector3f tangentA = new SimpleVector3f();
+            Vector3f tangentB = new SimpleVector3f();
+            computeTangents(tangentA, tangentB, contactPoint.normal, contactPoint.getRelativeVelocityVec());
+            projectsTangentImpulses(tangentA, tangentB);
+
+            Vector3f ra = contactPoint.rA;
+            Vector3f rb = contactPoint.rB;
+
+            Matrix3x3 iInvA = a.getIInv();
+            Matrix3x3 iInvB = b.getIInv();
+
+
+            Vector3f inertiaATa = ra.duplicate().cross(tangentA);
+            Vector3f inertiaBTa = rb.duplicate().cross(tangentA);
+
+            Vector3f inertiaATb = ra.duplicate().cross(tangentB);
+            Vector3f inertiaBTb = rb.duplicate().cross(tangentB);
+
+            iInvA.transform(inertiaATa);
+            iInvB.transform(inertiaBTa);
+            iInvA.transform(inertiaATb);
+            iInvB.transform(inertiaBTb);
+            inertiaATa.cross(ra.duplicate());
+            inertiaBTa.cross(rb.duplicate());
+            inertiaATb.cross(ra.duplicate());
+            inertiaBTb.cross(rb.duplicate());
+
+            float angularEffectTA = inertiaATa.add(inertiaBTa).dot(tangentA);
+            float angularEffectTB = inertiaATb.add(inertiaBTb).dot(tangentB);
+            this.kTa = (totalMass + angularEffectTA);
+            this.kTb = (totalMass + angularEffectTB);
+
+            this.tangentA.copy(tangentA);
+            this.tangentB.copy(tangentB);
+        }
+
+        public void preStep() {
+            calculateTangents();
+            Vector3f normal = contactPoint.normal;
+
+            Vector3f ra = contactPoint.rA;
+            Vector3f rb = contactPoint.rB;
+
+            Vector3f fullImpulse = normal.duplicate().mul(accumulatedImpulse).add(tangentA.duplicate().mul(accumulatedFrictionA)).add(tangentB.duplicate().mul(accumulatedFrictionB));
+
+            if (sleepB.isAwoken()) {
+                b.addLinearImpulse(fullImpulse);
+                b.addAngularImpulse(rb.duplicate().cross(fullImpulse.duplicate()));
+            }
+
+            if (sleepA.isAwoken()) {
+                a.addLinearImpulse(fullImpulse.duplicate().negate());
+                a.addAngularImpulse(ra.duplicate().cross(fullImpulse.duplicate().negate()));
+            }
         }
 
         public float correct() {
             computeVel();
 
             float impulseForce = contactPoint.getRelativeVelocityAlongNormal();
-            if (impulseForce==0)
-                return 0;
 
             Vector3f normal = contactPoint.normal;
 
             Vector3f ra = contactPoint.rA;
             Vector3f rb = contactPoint.rB;
 
-            float numeratorNormal = -impulseForce + (BIAS ? velBias : 0);
+            //float epsilon = (a.getBodyProperties().bouncingFactor * b.getBodyProperties().bouncingFactor);
+            float bias = (BIAS ? velBias : 0);
+            /*
+            if (impulseForce<-MIN_BOUNCE_VELOCITY) {
+                float ve = epsilon*impulseForce;
+                if (ve<-bias) {
+                    bias = ve;
+                }
+            }
+
+             */
+            float numeratorNormal = -impulseForce + bias;
 
             float jr = numeratorNormal / kN;
 
             float oldAccumulatedImpulse = accumulatedImpulse;
             accumulatedImpulse = Math.max(jr+oldAccumulatedImpulse, 0);
-            currentAccumulatedImpulse = Math.max(jr+currentAccumulatedImpulse, 0);
             float diffJr = accumulatedImpulse-oldAccumulatedImpulse;
-            if (diffJr==0)
-                return 0;
+            totalImpulse+=accumulatedImpulse;
 
             float jFrictionA = -(tangentA.dot(contactPoint.getRelativeVelocityVec())) / kTa;
             float jFrictionB = -(tangentB.dot(contactPoint.getRelativeVelocityVec())) / kTb;
@@ -259,18 +338,26 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
         }
 
         public void applyBounce() {
+            float epsilon = (a.getBodyProperties().bouncingFactor * b.getBodyProperties().bouncingFactor);
+            if (epsilon==0)
+                return;
+            if (initialRelativeVelocity>-MIN_BOUNCE_VELOCITY || totalImpulse==0)
+                return;
+
             computeVel();
 
             Vector3f normal = contactPoint.normal;
-
             Vector3f ra = contactPoint.rA;
             Vector3f rb = contactPoint.rB;
 
-            float epsilon = a.getBodyProperties().bouncingFactor * b.getBodyProperties().bouncingFactor;
+            float vn = contactPoint.getRelativeVelocityAlongNormal();
+            float impulse = -(vn + epsilon*initialRelativeVelocity)/kN;
 
-            float diffJr = (currentAccumulatedImpulse)*epsilon;
-            if (diffJr<= BOUNCE_IMPULSE_THRESHOLD)
-                return;
+            float oldAccumulatedImpulse = accumulatedImpulse;
+            accumulatedImpulse = Math.max(impulse+oldAccumulatedImpulse, 0);
+            float diffJr = accumulatedImpulse-oldAccumulatedImpulse;
+            totalImpulse+=diffJr;
+
             Vector3f fullImpulse = normal.duplicate().mul(diffJr);
 
             if (sleepB.isAwoken()) {
@@ -285,12 +372,17 @@ public class SequentialImpulseCollisionContactSolver implements CollisionContact
         }
 
         public void wakeIfNeeded() {
-            float currentMomentum = currentAccumulatedImpulse;
             if (WAKE_UP_MANUALLY && (a.getLinearVelocity().lengthSquared() >= WAKE_THRESHOLD*WAKE_THRESHOLD || b.getLinearVelocity().lengthSquared() >= WAKE_THRESHOLD*WAKE_THRESHOLD)) {
                 sleepA.wakeUp();
                 sleepB.wakeUp();
             }
-            contactPoint.manifoldPoint.data.cachedAccumulatedImpulse = currentMomentum;
+
+            contactPoint.manifoldPoint.data.oldTa.copy(tangentA);
+            contactPoint.manifoldPoint.data.oldTb.copy(tangentB);
+            contactPoint.manifoldPoint.data.cachedAccumulatedImpulse = accumulatedImpulse;
+            contactPoint.manifoldPoint.data.cachedAccumulatedFrictionLambda[0] = accumulatedFrictionA;
+            contactPoint.manifoldPoint.data.cachedAccumulatedFrictionLambda[1] = accumulatedFrictionB;
+
             contactPoint.manifoldPoint.data.cachedTotalMass = totalMass;
 
         }

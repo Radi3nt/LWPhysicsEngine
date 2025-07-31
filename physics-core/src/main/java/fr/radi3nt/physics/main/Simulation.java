@@ -8,6 +8,7 @@ import fr.radi3nt.physics.collision.detection.CollisionDetection;
 import fr.radi3nt.physics.collision.detection.broad.BroadPhaseStrategies;
 import fr.radi3nt.physics.collision.detection.broad.aabb.AABBBroadPhaseDetectionStrategy;
 import fr.radi3nt.physics.collision.detection.broad.aabb.shapes.ParentAABBPreCollisionShape;
+import fr.radi3nt.physics.collision.detection.broad.pre.PreCollisionShape;
 import fr.radi3nt.physics.collision.detection.broad.sphere.SphereBroadPhaseDetectionStrategy;
 import fr.radi3nt.physics.collision.detection.generators.DimensionalContactPairCacheProvider;
 import fr.radi3nt.physics.collision.detection.generators.generator.BroadphaseOrderingPairGenerator;
@@ -43,6 +44,7 @@ import fr.radi3nt.physics.constraints.solver.ImpulseConstraintSolver;
 import fr.radi3nt.physics.constraints.solver.filled.ListConstraintFiller;
 import fr.radi3nt.physics.constraints.solver.mass.InverseMassMatrixComputer;
 import fr.radi3nt.physics.constraints.solver.mass.SparseInverseMassMatrixComputer;
+import fr.radi3nt.physics.core.TransformedObject;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.force.caster.*;
 import fr.radi3nt.physics.dynamics.island.ArrayListRigidBodyIsland;
@@ -103,7 +105,7 @@ public class Simulation {
             return 0.115f;
         }
     });
-    private final TorqueDampForceCaster torqueDrag = new TorqueDampForceCaster(0.001f);
+    private final TorqueDampForceCaster torqueDrag = new TorqueDampForceCaster(0.1f);
     private final Collection<CachingProcessedShapeProvider<?>> cachingProviders = new ArrayList<>();
 
     private final ProcessedShapeProvider<SatProcessedShape> satShapeProvider;
@@ -129,7 +131,7 @@ public class Simulation {
         SimultaneousImpulseRestingContactSolver solver = new SimultaneousImpulseRestingContactSolver(
                 new SimpleNoPenetrationConstraintProvider(new DriftParameters(0.1f)),
                 instantConstraintList, this);
-        collisionContactSolver = new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(this, 100), solver);
+        collisionContactSolver = new CompositionCollisionContactSolver(new SequentialImpulseCollisionContactSolver(this, 30));
         //collisionContactSolver = new CompositionCollisionContactSolver(solver);
 
         satShapeProvider = createSatProvider();
@@ -256,7 +258,7 @@ public class Simulation {
             if (rigidBody.getSleepingData().isSleeping())
                 sleeping++;
         }
-        System.out.println("Sleeping " + sleeping + "/" + result.getSize());
+        //System.out.println("Sleeping " + sleeping + "/" + result.getSize());
     }
 
     private void submit(float dt, List<Callable<Object>> callables, List<ConstrainedIsland> subset) {
@@ -294,6 +296,22 @@ public class Simulation {
                 wakeRecursively(rigidBody, addedSize);
             }
         }
+    }
+
+    public void wakeRecursively(PreCollisionShape shape, TransformedObject transformedObject, float addedSize) {
+        BroadPhaseDetectionStrategyPredicate predicate = new BroadPhaseDetectionStrategyPredicate(AABBBroadPhaseDetectionStrategy.standard(), transformedObject, new ParentAABBPreCollisionShape(shape, 0f));
+
+        for (int i = 0; i < rigidBodyIsland.getSize(); i++) {
+            RigidBody rigidBody = rigidBodyIsland.getRigidBody(i);
+            if (!rigidBody.getSleepingData().isAwoken() && predicate.test(rigidBody)) {
+                rigidBody.getSleepingData().wakeUp();
+                wakeRecursively(rigidBody, addedSize);
+            }
+        }
+    }
+
+    public void wakeRecursively(PreCollisionShape shape, TransformedObject transformedObject) {
+        wakeRecursively(shape, transformedObject, DEFAULT_ADDED_SIZE_EPSILON);
     }
 
     public void wakeRecursively(RigidBody current) {

@@ -128,6 +128,13 @@ public class DynamicsData implements TransformedObject {
         computeLinearVelocity();
     }
 
+    public void setLinearVelocity(Vector3f linearVelocity) {
+        if (dynamicsProperties.inverseMass==0)
+            return;
+        this.linearMomentum.copy(linearVelocity.div(dynamicsProperties.inverseMass));
+        computeLinearVelocity();
+    }
+
     public void zeroLinearMomentum() {
         this.linearMomentum.set(0, 0, 0);
         this.linearVelocity.set(0, 0, 0);
@@ -135,7 +142,10 @@ public class DynamicsData implements TransformedObject {
 
     public void addLinearImpulse(Vector3f impulse) {
         this.linearMomentum.add(impulse);
-        computeLinearVelocity();
+        if (dynamicsProperties.inverseMass==0)
+            zeroLinearMomentum();
+        else
+            computeLinearVelocity();
     }
 
     public void addLinearVelocity(Vector3f velocity) {
@@ -166,7 +176,10 @@ public class DynamicsData implements TransformedObject {
 
     public void addAngularImpulse(Vector3f impulse) {
         this.angularMomentum.add(impulse);
-        computeAngularVelocity();
+        if (dynamicsProperties.bodyInverseInertiaTensor.isZero())
+            zeroAngularMomentum();
+        else
+            computeAngularVelocity();
     }
 
     public Vector3f toAngularVelocity(Vector3f angularMomentum) {

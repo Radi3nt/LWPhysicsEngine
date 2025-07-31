@@ -21,7 +21,7 @@ public class SatTriangleProcessedShapeProvider implements ProcessedShapeProvider
     }
 
     @Override
-    public SatProcessedShape getShape(CollisionShape shape, TransformedObject transformedObject) {
+    public SatCreatingTriangleProcessedShape getShape(CollisionShape shape, TransformedObject transformedObject) {
         TriangleShape triangleShape = (TriangleShape) shape;
         if (triangleShape.isEdgeless() && triangleShape.isOneWay())
             return new SatOneWayEdgelessCreatingTriangleProcessedShape(transformedObject, triangleShape.getVertex1(), triangleShape.getVertex2(), triangleShape.getVertex3());

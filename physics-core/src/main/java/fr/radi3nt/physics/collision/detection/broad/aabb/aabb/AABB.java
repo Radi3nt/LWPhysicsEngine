@@ -11,6 +11,4 @@ public interface AABB extends ProcessedShape {
     AxisMapping getyMapping(AxisMapping mapping);
     AxisMapping getzMapping();
     AxisMapping getzMapping(AxisMapping mapping);
-
-
 }

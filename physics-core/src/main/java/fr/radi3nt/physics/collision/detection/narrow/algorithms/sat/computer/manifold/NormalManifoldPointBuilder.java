@@ -40,6 +40,9 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
     }
 
     private List<ManifoldPoint> computePairs(GeneratedContactPair<?> pair, SatProcessedShape sa, SatProcessedShape sb, NormalSatCollisionDetector.ResultInfo resultInfo) {
+        if (Float.isNaN(resultInfo.overlap))
+            return Collections.emptyList();
+
         List<ManifoldPoint> resultPoints = runFaces(pair, sa, sb, resultInfo);
         if (resultPoints != null) return resultPoints;
 
@@ -53,8 +56,6 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
         if (resultInfo.contactType.isFace()) {
             return null;
         }
-        if (Float.isNaN(resultInfo.overlap))
-            return null;
 
         List<ManifoldPoint> resultPoints = new ArrayList<>();
 
@@ -146,8 +147,6 @@ public class NormalManifoldPointBuilder implements ManifoldPointBuilder {
         if (!resultInfo.contactType.isFace()) {
             return null;
         }
-        if (Float.isNaN(resultInfo.overlap))
-            return null;
 
         List<ManifoldPoint> resultPoints = new ArrayList<>();
 

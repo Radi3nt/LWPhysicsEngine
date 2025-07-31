@@ -6,11 +6,12 @@ import fr.radi3nt.physics.collision.contact.manifold.PersistentManifold;
 import fr.radi3nt.physics.core.state.RigidBody;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HashPersistentManifoldCache implements PersistentManifoldCache {
 
     private static final int RELEVANT_STEP_DISCARD = 60;
-    private final Map<ContactKeyPair, PersistentManifold> persistentManifoldMap = new HashMap<>();
+    private final Map<ContactKeyPair, PersistentManifold> persistentManifoldMap = new ConcurrentHashMap<>();
 
     @Override
     public PersistentManifold getCachedManifold(GeneratedContactPair<RigidBody> contactPair) {

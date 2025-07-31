@@ -11,7 +11,7 @@ public class RigidBodyOneDimensionPairMeeter extends OneDimensionPairMeeter<Rigi
 
     @Override
     protected boolean canSkip(RigidBody rigidBody) {
-        return rigidBody.getCollisionData().isEmpty();
+        return rigidBody.getCollisionData().isEmpty() || !Float.isFinite(rigidBody.getDynamicsData().getPosition().lengthSquared());
     }
 
 }

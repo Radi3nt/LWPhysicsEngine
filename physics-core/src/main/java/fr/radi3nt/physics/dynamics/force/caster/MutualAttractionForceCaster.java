@@ -6,13 +6,13 @@ import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
 import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
 import fr.radi3nt.physics.dynamics.island.RigidBodyIsland;
 
-public class AttractionForceCaster implements ForceCaster {
+public class MutualAttractionForceCaster implements ForceCaster {
 
     private final MotionResult cachingForceResult = new MotionResult();
     private final float g;
     private final Vector3f torque;
 
-    public AttractionForceCaster(float g, Vector3f torque) {
+    public MutualAttractionForceCaster(float g, Vector3f torque) {
         this.g = g;
         this.torque = torque;
     }

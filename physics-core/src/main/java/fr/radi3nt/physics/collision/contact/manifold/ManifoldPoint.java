@@ -8,7 +8,7 @@ import fr.radi3nt.physics.core.state.DynamicsData;
 
 public class ManifoldPoint {
 
-    private static final float MERGE_THRESHOLD = 1e-2f;
+    private static final float MERGE_THRESHOLD = 2e-3f;
 
     public final Vector3f localSpaceAPoint;
     public final Vector3f localSpaceBPoint;

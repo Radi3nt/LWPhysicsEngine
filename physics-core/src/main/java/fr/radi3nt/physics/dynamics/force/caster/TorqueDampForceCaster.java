@@ -27,8 +27,9 @@ public class TorqueDampForceCaster implements ForceCaster {
 
     private Vector3f getDragTorque(RigidBody rigidBody) {
         Vector3f relativeVel = rigidBody.getDynamicsData().getAngularMomentum();
-        Vector3f dragTorque = relativeVel.duplicate().mul(relativeVel);
-        dragTorque.mul(Math.signum(relativeVel.getX()), Math.signum(relativeVel.getY()), Math.signum(relativeVel.getZ()));
+        Vector3f dragTorque = relativeVel.duplicate();
+        //dragTorque.set((float) Math.sqrt(Math.abs(dragTorque.getX())), (float) Math.sqrt(Math.abs(dragTorque.getY())), (float) Math.sqrt(Math.abs(dragTorque.getZ())));
+        //dragTorque.mul(Math.signum(relativeVel.getX()), Math.signum(relativeVel.getY()), Math.signum(relativeVel.getZ()));
         dragTorque.mul(-1/2f*damping);
         return dragTorque;
     }

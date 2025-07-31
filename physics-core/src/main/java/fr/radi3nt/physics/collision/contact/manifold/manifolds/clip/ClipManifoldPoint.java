@@ -28,7 +28,7 @@ public class ClipManifoldPoint extends ManifoldPoint {
 
     @Override
     protected float replaces(ManifoldPoint other) {
-        return sameIndex(other) ? 1 : super.replaces(other);
+        return sameIndex(other) ? 1 : -1;
     }
 
     private boolean sameIndex(ManifoldPoint other) {

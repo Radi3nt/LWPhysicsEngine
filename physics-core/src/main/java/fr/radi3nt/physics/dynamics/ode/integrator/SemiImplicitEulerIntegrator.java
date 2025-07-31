@@ -2,6 +2,7 @@ package fr.radi3nt.physics.dynamics.ode.integrator;
 
 import fr.radi3nt.maths.components.advanced.quaternions.Quaternion;
 import fr.radi3nt.maths.components.vectors.Vector3f;
+import fr.radi3nt.maths.components.vectors.implementations.SimpleVector3f;
 import fr.radi3nt.physics.core.state.RigidBody;
 import fr.radi3nt.physics.dynamics.force.accumulator.MotionAccumulator;
 import fr.radi3nt.physics.dynamics.force.accumulator.MotionResult;
@@ -25,7 +26,7 @@ public class SemiImplicitEulerIntegrator implements Integrator {
             RigidBody currentBody = original.getRigidBody(i);
 
             if (currentBody.isStatic()) {
-                resultIsland.setRigidBody(currentBody.preview(), i);
+                resultIsland.setRigidBody(currentBody.preview(new SimpleVector3f(), new SimpleVector3f()), i);
                 continue;
             }
 

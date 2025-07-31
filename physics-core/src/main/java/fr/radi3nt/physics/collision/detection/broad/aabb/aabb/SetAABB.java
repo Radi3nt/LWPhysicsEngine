@@ -53,7 +53,8 @@ public class SetAABB implements AABB {
 
     @Override
     public AxisMapping getxMapping(AxisMapping mapping) {
-        return xMapping;
+        mapping.set(xMapping.getMin(), xMapping.getMax());
+        return mapping;
     }
 
     public AxisMapping getyMapping() {
@@ -62,7 +63,8 @@ public class SetAABB implements AABB {
 
     @Override
     public AxisMapping getyMapping(AxisMapping mapping) {
-        return yMapping;
+        mapping.set(yMapping.getMin(), yMapping.getMax());
+        return mapping;
     }
 
     public AxisMapping getzMapping() {
@@ -71,6 +73,7 @@ public class SetAABB implements AABB {
 
     @Override
     public AxisMapping getzMapping(AxisMapping mapping) {
-        return zMapping;
+        mapping.set(zMapping.getMin(), zMapping.getMax());
+        return mapping;
     }
 }
