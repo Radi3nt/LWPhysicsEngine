@@ -80,8 +80,6 @@ public class RelativeDistanceConstraint implements Constraint {
 
             raCrossN = ra.duplicate().cross(normal);
             rbCrossN = rb.duplicate().cross(normal);
-
-            System.out.println(correction);
         }
 
         @Override
